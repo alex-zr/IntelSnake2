@@ -9,6 +9,13 @@ import java.util.List;
 
 public class Board extends AbstractBoard<Elements> {
 
+    public Board() {
+    }
+
+    public Board(int size) {
+        this.size = size;
+    }
+
     @Override
     public Elements valueOf(char ch) {
         return Elements.valueOf(ch);

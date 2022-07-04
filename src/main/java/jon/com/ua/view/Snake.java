@@ -1,7 +1,6 @@
 package jon.com.ua.view;
 
 import jon.com.ua.pathfind.DirectionCompass;
-import jon.com.ua.pathfind.dijkstra2.Vertex;
 
 
 import java.awt.*;
@@ -18,7 +17,7 @@ public class Snake {
     private LinkedList<Element> heads;
     private Color snakeColor = Color.CYAN;
     private boolean isGrow;
-    private List<Vertex> path;
+//    private List<Vertex> path;
 
     public Snake() {
         this(1);
@@ -59,7 +58,7 @@ public class Snake {
         }
     }
 
-    public void paintPath(Graphics g, int cellHeight, int cellWidth) {
+/*    public void paintPath(Graphics g, int cellHeight, int cellWidth) {
         Vertex previous = null;
         int headX = 0;
         int headY = 0;
@@ -82,7 +81,7 @@ public class Snake {
         }
         g.setColor(Color.RED);
         g.drawRect(headX, headY, 2, 2);
-    }
+    }*/
 
     public void drawDashedLine(Graphics g, int x1, int y1, int x2, int y2){
         Graphics2D g2d = (Graphics2D) g.create();
@@ -166,9 +165,9 @@ public class Snake {
         return false;
     }
 
-    public boolean isBody(Vertex vertex) {
+/*    public boolean isBody(Vertex vertex) {
         return isHead(vertex.getElement());
-    }
+    }*/
 
     public Element getLead() {
         return heads.getFirst();
@@ -193,9 +192,9 @@ public class Snake {
         return isGlass;
     }
 
-    public void setPath(List<Vertex> path) {
+/*    public void setPath(List<Vertex> path) {
         this.path = path;
-    }
+    }*/
 
     @Override
     public String toString() {
