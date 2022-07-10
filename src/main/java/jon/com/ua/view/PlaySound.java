@@ -33,10 +33,6 @@ public class PlaySound extends Thread {
             clip = AudioSystem.getClip();
             clip.open(ais);
             clip.start();
-
-            //Thread.sleep(clip.getMicrosecondLength() / 1000);
-//            clip.stop();
-//            clip.close();
         } catch (Exception exc) {
             exc.printStackTrace();
         }

@@ -66,6 +66,10 @@ public class Element {
         return true;
     }
 
+    public boolean itsMe(Element element) {
+        return element != null && x == element.getX() && y == element.getY();
+    }
+
     @Override
     public int hashCode() {
         int result = x;
@@ -78,9 +82,5 @@ public class Element {
         return
                 "x=" + x +
                 ", y=" + y;
-    }
-
-    public boolean itsMe(Element element) {
-        return element != null && x == element.getX() && y == element.getY();
     }
 }

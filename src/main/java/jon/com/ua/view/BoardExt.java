@@ -16,7 +16,7 @@ import static jon.com.ua.client.Elements.TAIL_END_LEFT;
 import static jon.com.ua.client.Elements.TAIL_END_RIGHT;
 import static jon.com.ua.client.Elements.TAIL_END_UP;
 
-public class BoardExt extends Board {
+public class BoardExt extends Board implements Cloneable {
     public static final int SIZE = 15;
 
     public BoardExt(int size) {
@@ -52,7 +52,6 @@ public class BoardExt extends Board {
         return isXInBounds && isYInBounds;
     }
 
-    // TODO remove board
     public void render(Snake snake, Apple apple, BadApple badApple, List<Wall> walls) {
         clearHigh();
         putWalls(walls);
@@ -71,22 +70,6 @@ public class BoardExt extends Board {
 
     public void putWalls(List<Wall> walls) {
         walls.forEach(w -> set(w.getX(), w.getY(), Elements.BREAK.ch()));
-/*        // Left
-        for (int i = 0; i < size(); i++) {
-            set(0, i, Elements.BREAK.ch());
-        }
-        // Right
-        for (int i = 0; i < size(); i++) {
-            set(size() - 1, i, Elements.BREAK.ch());
-        }
-        // Down
-        for (int i = 0; i < size(); i++) {
-            set(i, size() - 1, Elements.BREAK.ch());
-        }
-        // Up
-        for (int i = 0; i < size(); i++) {
-            set(i, 0, Elements.BREAK.ch());
-        }*/
     }
 
     public void putApple(Apple apple) {
@@ -127,5 +110,10 @@ public class BoardExt extends Board {
             case RIGHT -> HEAD_RIGHT;
             default -> NONE;
         };
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

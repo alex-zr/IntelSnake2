@@ -24,12 +24,11 @@ public class View extends javax.swing.JPanel {
     public static final Color WALL_COLOR = Color.GRAY;
     private static final int GAME_OVER_DELAY = 3000;
     public static final int SNAKE_LENGTH = 2;
-    public static final int DECRESE_LENGTH = 10;
+    public static final int DECREASE_LENGTH = 10;
     public static int DELAY = 250;
 
     private BoardExt board;
-    //    private final Field field = new Field(FIELD_SIZE, FIELD_HEIGHT);
-    List<Wall> walls = new ArrayList<>();
+    private List<Wall> walls = new ArrayList<>();
     private Apple apple;
     private BadApple badApple;
     private Snake snake;
@@ -124,9 +123,9 @@ public class View extends javax.swing.JPanel {
 
     private void setSnakeDirection() {
         try {
-            Direction direction = Direction.valueOf(solver.get(board));
+            Direction direction = Direction.valueOf(solver.get((Board) board.clone()));
             snake.setDirection(direction);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | CloneNotSupportedException e) {
             // TODO print illegal direction
             e.printStackTrace();
         }
@@ -139,8 +138,7 @@ public class View extends javax.swing.JPanel {
     private Element checkSnakeEatApple() {
         Element eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
-            incraseScore(this.snake.size());
-//            removeEatedFruit();
+            increaseScore(this.snake.size());
             createApple();
             snake.grow();
             // For disable event sound
@@ -153,14 +151,12 @@ public class View extends javax.swing.JPanel {
     private Element checkSnakeEatBadApple() {
         Element eatBadApple = tryToEatAndGet(this.badApple);
         if (eatBadApple != null) {
-//            incraseScore(this.snake.size());
-//            removeEatedFruit();
             createBadApple();
-            if (this.snake.size() <= DECRESE_LENGTH) {
+            if (this.snake.size() <= DECREASE_LENGTH) {
                 gameOver();
                 return eatBadApple;
             }
-            snake.decrease(DECRESE_LENGTH);
+            snake.decrease(DECREASE_LENGTH);
             // For disable event sound
             playSound = new PlaySound();
             playSound.start();
@@ -168,11 +164,7 @@ public class View extends javax.swing.JPanel {
         return null;
     }
 
-    private void removeEatedFruit() {
-        this.apple = null;
-    }
-
-    private void incraseScore(int score) {
+    private void increaseScore(int score) {
         this.score += score;
     }
 
@@ -214,14 +206,9 @@ public class View extends javax.swing.JPanel {
     }
 
     private void gameOver() {
-        // TODO rebuild to not clear score
-//        snake.hide();
         textOnCenter = "Game over";
-        //System.out.println("Snake direction: " + snake.getDirection());
         repaint();
         sleep(GAME_OVER_DELAY);
-//        score = 0;
-//        apple = null;
         snake.create(SNAKE_LENGTH);
         createApple();
         createBadApple();
