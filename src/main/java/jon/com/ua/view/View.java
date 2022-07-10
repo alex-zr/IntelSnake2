@@ -39,7 +39,7 @@ public class View extends javax.swing.JPanel {
     private boolean isPause;
     private PlaySound playSound;
 
-    public View(JFrame main, Solver<Board> solver, Board board) {
+    public View(JFrame main, Solver<Board> solver, BoardExt board) {
         this.solver = solver;
         this.board = new BoardExt();
         createWalls();
@@ -85,6 +85,7 @@ public class View extends javax.swing.JPanel {
                     continue;
                 }
                 View.this.sleep(DELAY);
+                this.board.render(snake, apple, badApple, walls);
                 System.out.println(this.board);
                 setSnakeDirection();
                 setSnakePathToTarget();
@@ -95,7 +96,6 @@ public class View extends javax.swing.JPanel {
                 }
                 repaint();
                 checkSnakeDead();
-                BoardExt.render(this.board, snake, apple, badApple);
             }
         }).start();
     }
@@ -178,7 +178,7 @@ public class View extends javax.swing.JPanel {
             int rndX = rnd.nextInt(board.size());
             int rndY = rnd.nextInt(board.size());
             badApple = new BadApple(rndX, rndY);
-        } while ((snake != null && snake.isBody(apple)) || apple.itsMe(badApple) || isWall(badApple));
+        } while ((snake != null && snake.isBody(badApple)) || badApple.itsMe(apple) || isWall(badApple));
     }
 
     private boolean isWall(Element element) {
@@ -197,7 +197,7 @@ public class View extends javax.swing.JPanel {
         // TODO rebuild to not clear score
 //        snake.hide();
         textOnCenter = "Game over";
-        System.out.println("Snake direction: " + snake.getDirection());
+        //System.out.println("Snake direction: " + snake.getDirection());
         repaint();
         sleep(GAME_OVER_DELAY);
         score = 0;
@@ -217,13 +217,13 @@ public class View extends javax.swing.JPanel {
 
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> initWindow(new YourSolver(null), new Board()));
+        SwingUtilities.invokeLater(() -> initWindow(new YourSolver(null), null));
     }
 
     private static void initWindow(Solver<Board> solver, Board board) {
         JFrame main = new JFrame("Intellectual snake");
         main.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        final View view = new View(main, solver, board);
+        final View view = new View(main, solver, new BoardExt());
 
         main.setContentPane(view);
         int fieldSize = CELL_SIZE * BoardExt.SIZE;
@@ -242,7 +242,8 @@ public class View extends javax.swing.JPanel {
         paintGrid(graphics, cellHeight, cellWidth);
         paintWalls(graphics, cellHeight, cellWidth);
         snake.paint(graphics, cellHeight, cellWidth);
-        paintApple(graphics, cellHeight, cellWidth);
+        apple.paint(graphics, cellHeight, cellWidth);
+        badApple.paint(graphics, cellHeight, cellWidth);
 //        snake.paintPath(g, cellHeight, cellWidth);
         paintCenterText(graphics);
         paintScore(graphics);
@@ -267,10 +268,6 @@ public class View extends javax.swing.JPanel {
         g.setColor(Color.WHITE);
         g.drawString("Delay: " + DELAY, 50, 70);
         g.setColor(tmpColor);
-    }
-
-    private void paintApple(Graphics g, int cellHeight, int cellWidth) {
-        apple.paint(g, cellHeight, cellWidth);
     }
 
     private void paintCenterText(Graphics g) {

@@ -32,14 +32,14 @@ public class YourSolver implements Solver<Board> {
             return Direction.UP.toString();
         }
         this.board = board;
-        System.out.println(board);
 
         Point head = board.getHead();
         Point target = board.getSnake().size() < REDUCE_SIZE ? board.getApples().get(0) : board.getStones().get(0);
         //board.isAt(target.getX(), target.getY(), Elements.NONE);
+        List<Elements> allAt = board.getAllAt(head);
         List<Point> neighbours = getNearEmpty(board, head, target);
         Direction direction = neighbours.stream()
-                .peek(p -> System.out.println(p.toString() + ":" + p.distance(target)))
+                //.peek(p -> System.out.println(p.toString() + ":" + p.distance(target)))
                 .min(Comparator.comparingDouble(target::distance))
                 .map(head::direction)
                 .orElse(Direction.UP);

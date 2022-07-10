@@ -37,19 +37,19 @@ public class Element {
     }
 
     public void paint(Graphics g, int cellHeight, int cellWidth) {
-        int x = getX() * cellWidth;
-        int y = getY() * cellHeight;
-
-        g.setColor(color);
-        g.fill3DRect(x, y, cellWidth, cellHeight, true);
+        paint(g, cellHeight, cellWidth, this.color);
     }
 
     public void paint(Graphics g, int cellHeight, int cellWidth, Color color) {
         int x = getX() * cellWidth;
-        int y = getY() * cellHeight;
+        int y = realToScr(getY()) * cellHeight;
 
         g.setColor(color);
-        g.fill3DRect(x, y, cellWidth, cellHeight, true);
+        g.fill3DRect(x,  y, cellWidth, cellHeight, true);
+    }
+
+    private int realToScr(int y) {
+        return BoardExt.SIZE - y - 1;
     }
 
 
