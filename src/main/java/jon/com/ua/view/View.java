@@ -1,23 +1,15 @@
 package jon.com.ua.view;
 
-import com.codenjoy.dojo.client.AbstractBoard;
-import com.codenjoy.dojo.client.ClientBoard;
 import com.codenjoy.dojo.client.Solver;
-import com.codenjoy.dojo.client.UrlParser;
-import com.codenjoy.dojo.client.WebSocketRunner;
 import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
-import jon.com.ua.client.Elements;
 import jon.com.ua.client.YourSolver;
-import jon.com.ua.pathfind.DirectionSupplier;
-import jon.com.ua.pathfind.DirectionSupplierFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -27,19 +19,21 @@ import java.util.Random;
  * Date: 1/23/13
  */
 public class View extends javax.swing.JPanel {
-//    public static final int BOARD_SIZE = 10;
-    public static final int SNAKE_LENGTH = 2;
+    public static final int CELL_SIZE = 50;
     public static final Color FIELD_COLOR = Color.LIGHT_GRAY;
-    public static int DELAY = 250;
+    public static final Color WALL_COLOR = Color.GRAY;
     private static final int GAME_OVER_DELAY = 3000;
+    public static final int SNAKE_LENGTH = 2;
+    public static int DELAY = 250;
 
-    private Board board;
-//    private final Field field = new Field(FIELD_SIZE, FIELD_HEIGHT);
-    private final Snake snake = new Snake(SNAKE_LENGTH);
-    private final List<Fruit> fruits = new ArrayList<>();
+    private BoardExt board;
+    //    private final Field field = new Field(FIELD_SIZE, FIELD_HEIGHT);
+    List<Wall> walls = new ArrayList<>();
+    private Apple apple;
+    private BadApple badApple;
+    private Snake snake;
     private final Random rnd = new Random();
     private String textOnCenter;
-    private DirectionSupplier controller;
     private Solver<Board> solver;
     private int score;
     private boolean isPause;
@@ -47,13 +41,16 @@ public class View extends javax.swing.JPanel {
 
     public View(JFrame main, Solver<Board> solver, Board board) {
         this.solver = solver;
-        this.board = board;
-        controller = new DirectionSupplierFactory(main, board, snake, fruits).getSimpleDirectionBridge();
-        putFruit();
+        this.board = new BoardExt();
+        createWalls();
+        createApple();
+        createBadApple();
+        snake = new Snake(SNAKE_LENGTH, this.walls, this.apple, this.badApple);
         new PlayBackground().start();
         main.addKeyListener(new KeyAdapter() {
             private int backFramePosition;
             private int framePosition;
+
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
@@ -75,49 +72,74 @@ public class View extends javax.swing.JPanel {
                     }
                 }
                 if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    DELAY+= 50;
+                    DELAY += 50;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_DOWN && DELAY >= 50) {
-                    DELAY-= 50;
+                    DELAY -= 50;
                 }
             }
         });
-        new Thread() {
-            @Override
-            public void run() {
-                while (!interrupted()) {
-                    if (isPause) {
-                        continue;
-                    }
-                    View.this.sleep(DELAY);
-                    setSnakeDirection();
-                    setSnakePathToTarget();
-                    snake.move();
-                    checkSnakeEatedFruit();
-                    if (snake.getBittenItself() != null) {
-                        gameOver();
-                    }
-                    repaint();
-                    checkSnakeDead();
+        new Thread(() -> {
+            while (!Thread.interrupted()) {
+                if (isPause) {
+                    continue;
                 }
+                View.this.sleep(DELAY);
+                System.out.println(this.board);
+                setSnakeDirection();
+                setSnakePathToTarget();
+                snake.move();
+                checkSnakeEatedFruit();
+                if (snake.isBittenItselfOrWall()) {
+                    gameOver();
+                }
+                repaint();
+                checkSnakeDead();
+                BoardExt.render(this.board, snake, apple, badApple);
             }
-        }.start();
+        }).start();
+    }
+
+    private void createWalls() {
+        walls = new ArrayList<>();
+        // Left
+        for (int i = 0; i < BoardExt.SIZE; i++) {
+            walls.add(new Wall(0, i));
+        }
+        // Right
+        for (int i = 0; i < BoardExt.SIZE; i++) {
+            walls.add(new Wall(BoardExt.SIZE - 1, i));
+        }
+        // Down
+        for (int i = 0; i < BoardExt.SIZE; i++) {
+            walls.add(new Wall(i, BoardExt.SIZE - 1));
+        }
+        // Up
+        for (int i = 0; i < BoardExt.SIZE; i++) {
+            walls.add(new Wall(i, 0));
+        }
     }
 
     private void setSnakeDirection() {
-        snake.setDirection(controller.getDirection());
+        try {
+            Direction direction = Direction.valueOf(solver.get(board));
+            snake.setDirection(direction);
+        } catch (IllegalArgumentException e) {
+            // TODO print illegal direction
+            e.printStackTrace();
+        }
     }
 
     private void setSnakePathToTarget() {
 //        snake.setPath(controller.getPath());
     }
 
-    private Fruit checkSnakeEatedFruit() {
-        Fruit eatedFruit = tryToEatFruitAndGet();
-        if (eatedFruit != null) {
-            incraseScore(eatedFruit.getSCORE());
-            removeEatedFruit(eatedFruit);
-            putFruit();
+    private Apple checkSnakeEatedFruit() {
+        Apple eatedApple = tryToEatFruitAndGet();
+        if (eatedApple != null) {
+            incraseScore(eatedApple.getSCORE());
+//            removeEatedFruit();
+            createApple();
             snake.grow();
             // For disable event sound
             playSound = new PlaySound();
@@ -126,61 +148,63 @@ public class View extends javax.swing.JPanel {
         return null;
     }
 
-    private void removeEatedFruit(Fruit eatedFruit) {
-        Iterator<Fruit> itr = fruits.iterator();
-        while (itr.hasNext()) {
-            Fruit fruit = itr.next();
-            if (fruit.equals(eatedFruit)) {
-                itr.remove();
-            }
-        }
+    private void removeEatedFruit() {
+        this.apple = null;
     }
 
     private void incraseScore(int score) {
         this.score += score;
     }
 
-    private Fruit tryToEatFruitAndGet() {
-        for (Fruit fruit : fruits) {
-            for (Element head : snake.getHeads()) {
-                if (fruit.getX() == head.getX() && fruit.getY() == head.getY()) {
-                    return fruit;
-                }
+    private Apple tryToEatFruitAndGet() {
+        for (Element head : snake.getHeads()) {
+            if (apple.getX() == head.getX() && apple.getY() == head.getY()) {
+                return apple;
             }
         }
         return null;
     }
 
-    private void putFruit() {
-        Fruit fruit;
+    private void createApple() {
         do {
             int rndX = rnd.nextInt(board.size());
             int rndY = rnd.nextInt(board.size());
-            fruit = new Fruit(rndX, rndY);
-        } while (snake.isBody(fruit));
+            apple = new Apple(rndX, rndY);
+        } while ((snake != null && snake.isBody(apple)) || apple.itsMe(badApple) || isWall(apple));
+    }
 
-        fruits.add(fruit);
+    private void createBadApple() {
+        do {
+            int rndX = rnd.nextInt(board.size());
+            int rndY = rnd.nextInt(board.size());
+            badApple = new BadApple(rndX, rndY);
+        } while ((snake != null && snake.isBody(apple)) || apple.itsMe(badApple) || isWall(badApple));
+    }
+
+    private boolean isWall(Element element) {
+        return walls.stream().anyMatch(w -> w.itsMe(element));
     }
 
     private void checkSnakeDead() {
         textOnCenter = null;
         Element head = snake.getHeads().peekFirst();
-        if (!MatrixUtil.isInBounds(head, board.size(), board.size())) {
+        if (!BoardExt.isInBounds(head, board.size(), board.size())) {
             gameOver();
         }
     }
 
     private void gameOver() {
+        // TODO rebuild to not clear score
 //        snake.hide();
         textOnCenter = "Game over";
         System.out.println("Snake direction: " + snake.getDirection());
         repaint();
         sleep(GAME_OVER_DELAY);
         score = 0;
-        controller.setDirection(Direction.RIGHT);
-        fruits.clear();
-        snake.init(SNAKE_LENGTH);
-        putFruit();
+//        apple = null;
+        snake.create(SNAKE_LENGTH);
+        createApple();
+        createBadApple();
     }
 
     private void sleep(int delay) {
@@ -202,7 +226,8 @@ public class View extends javax.swing.JPanel {
         final View view = new View(main, solver, board);
 
         main.setContentPane(view);
-        main.setBounds(100, 100, 595, 600);
+        int fieldSize = CELL_SIZE * BoardExt.SIZE;
+        main.setBounds(100, 100, fieldSize - 13, fieldSize - 5);
         main.setVisible(true);
     }
 
@@ -210,17 +235,24 @@ public class View extends javax.swing.JPanel {
         SwingUtilities.invokeLater(() -> initWindow(solver, board));
     }
 
-    public void paintComponent(Graphics g) {
+    public void paintComponent(Graphics graphics) {
         int cellHeight = getHeight() / board.size();
         int cellWidth = getWidth() / board.size();
-        clearScreen(g);
-        paintGrid(g, cellHeight, cellWidth);
-        snake.paint(g, cellHeight, cellWidth);
-        paintFruits(g, cellHeight, cellWidth);
+        clearScreen(graphics);
+        paintGrid(graphics, cellHeight, cellWidth);
+        paintWalls(graphics, cellHeight, cellWidth);
+        snake.paint(graphics, cellHeight, cellWidth);
+        paintApple(graphics, cellHeight, cellWidth);
 //        snake.paintPath(g, cellHeight, cellWidth);
-        paintCenterText(g);
-        paintScore(g);
-        paintDelay(g);
+        paintCenterText(graphics);
+        paintScore(graphics);
+        paintDelay(graphics);
+    }
+
+    private void paintWalls(Graphics g, int cellHeight, int cellWidth) {
+        for (Element wall : this.walls) {
+            wall.paint(g, cellHeight, cellWidth, WALL_COLOR);
+        }
     }
 
     private void paintScore(Graphics g) {
@@ -237,10 +269,8 @@ public class View extends javax.swing.JPanel {
         g.setColor(tmpColor);
     }
 
-    private void paintFruits(Graphics g, int cellHeight, int cellWidth) {
-        for (Fruit fruit : fruits) {
-            fruit.paint(g, cellHeight, cellWidth);
-        }
+    private void paintApple(Graphics g, int cellHeight, int cellWidth) {
+        apple.paint(g, cellHeight, cellWidth);
     }
 
     private void paintCenterText(Graphics g) {
@@ -260,6 +290,7 @@ public class View extends javax.swing.JPanel {
     private void paintGrid(Graphics g, int cellHeight, int cellWidth) {
         int x = 0;
         int y = 0;
+        g.setColor(Color.BLACK);
         for (int i = 0; i < board.size(); i++) {
             g.drawLine(0, y, getWidth(), y);
             y += cellHeight;

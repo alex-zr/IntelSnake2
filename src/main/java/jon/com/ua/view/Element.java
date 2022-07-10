@@ -79,4 +79,8 @@ public class Element {
                 "x=" + x +
                 ", y=" + y;
     }
+
+    public boolean itsMe(Element element) {
+        return element != null && x == element.getX() && y == element.getY();
+    }
 }

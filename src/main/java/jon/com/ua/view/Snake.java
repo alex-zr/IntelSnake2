@@ -1,10 +1,10 @@
 package jon.com.ua.view;
 
 import com.codenjoy.dojo.services.Direction;
-import jon.com.ua.pathfind.DirectionCompass;
 
 import java.awt.*;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,21 +16,25 @@ public class Snake {
     private LinkedList<Element> heads;
     private Color snakeColor = Color.CYAN;
     private boolean isGrow;
+    private List<Wall> walls;
+    private BadApple badApple;
+    private Apple apple;
 //    private List<Vertex> path;
 
-    public Snake() {
-        this(1);
+    public Snake(int length, List<Wall> walls, Apple apple, BadApple badApple) {
+        this.walls = walls;
+        this.apple = apple;
+        this.badApple = badApple;
+        this.direction = Direction.RIGHT;
+        create(length);
     }
 
-    public Snake(int length) {
-        direction = Direction.RIGHT;
-        init(length);
-    }
-
-    public void init(int length) {
+    public void create(int length) {
         heads = new LinkedList<>();
+        int x = BoardExt.SIZE / 2;
+        int y = BoardExt.SIZE / 2;
         for (int i = 0; i < length; i++) {
-            heads.addFirst(new Element(snakeColor, "", i, 0));
+            heads.addFirst(new Element(snakeColor, "", x++, y));
         }
         direction = Direction.RIGHT;
     }
@@ -57,6 +61,7 @@ public class Snake {
         }
     }
 
+    // TODO implement path painting
 /*    public void paintPath(Graphics g, int cellHeight, int cellWidth) {
         Vertex previous = null;
         int headX = 0;
@@ -82,9 +87,9 @@ public class Snake {
         g.drawRect(headX, headY, 2, 2);
     }*/
 
-    public void drawDashedLine(Graphics g, int x1, int y1, int x2, int y2){
+    public void drawDashedLine(Graphics g, int x1, int y1, int x2, int y2) {
         Graphics2D g2d = (Graphics2D) g.create();
-        Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+        Stroke dashed = new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 9 }, 0);
         g2d.setStroke(dashed);
         g2d.drawLine(x1, y1, x2, y2);
         g2d.dispose();
@@ -131,22 +136,30 @@ public class Snake {
         isGrow = true;
     }
 
-    public Element getBittenItself() {
+    public boolean isBittenItselfOrWall() {
         Element lead = heads.getFirst();
+        boolean isMe = heads.stream().skip(1).anyMatch(h -> h.itsMe(lead));
+/*
         for (int i = 1; i < heads.size(); i++) {
             Element head = heads.get(i);
-            if (isCollision(lead, head)) {
-                return head;
+            if (lead.itsMe(head)) {
+                return true;
             }
         }
-        return null;
+*/
+        boolean isWall = walls.stream().anyMatch(w -> w.itsMe(lead));
+        return isMe || isWall;
     }
 
+    // TODO refactor to itsMe on Element
     public boolean isCollision(Element lead, Element head) {
         return lead.getX() == head.getX() && lead.getY() == head.getY();
     }
 
     public boolean isBody(Element element) {
+        if (this.heads == null) {
+            return false;
+        }
         for (Element head : heads) {
             if (isCollision(head, element)) {
                 return true;
@@ -177,7 +190,7 @@ public class Snake {
         return isCollision(lead, element);
     }
 
-    public boolean isDeadGlass(Element nextElement, DirectionCompass compass) {
+/*    public boolean isDeadGlass(Element nextElement, DirectionCompass compass) {
         boolean isGlass = true;
         for (Element element : compass.asList()) {
             if (!isBody(element)) {
@@ -189,7 +202,7 @@ public class Snake {
             System.out.println("---- Dead glass ----");
         }
         return isGlass;
-    }
+    }*/
 
 /*    public void setPath(List<Vertex> path) {
         this.path = path;
@@ -199,7 +212,7 @@ public class Snake {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (Element head : heads) {
-            sb.append("["+head.getX() + "," + head.getY() +"]");
+            sb.append("[" + head.getX() + "," + head.getY() + "]");
         }
         return sb.toString();
     }

@@ -8,10 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Board extends AbstractBoard<Elements> {
-    public static final int BOARD_SIZE = 15;
-
     public Board() {
-        this(BOARD_SIZE);
     }
 
     public Board(int size) {

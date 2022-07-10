@@ -7,12 +7,12 @@ import java.awt.*;
  * User: al1
  * Date: 8/20/13
  */
-public class Fruit extends Element {
+public class Apple extends Element {
     private static final int SCORE = 100;
-    private static Color fruitColor = Color.PINK;
+    private static Color color = Color.PINK;
 
-    public Fruit(int x, int y) {
-        super(fruitColor, "", x, y);
+    public Apple(int x, int y) {
+        super(color, "", x, y);
     }
 
     public int getSCORE() {
