@@ -24,6 +24,7 @@ public class View extends javax.swing.JPanel {
     public static final Color WALL_COLOR = Color.GRAY;
     private static final int GAME_OVER_DELAY = 3000;
     public static final int SNAKE_LENGTH = 2;
+    public static final int DECRESE_LENGTH = 10;
     public static int DELAY = 250;
 
     private BoardExt board;
@@ -90,7 +91,8 @@ public class View extends javax.swing.JPanel {
                 setSnakeDirection();
                 setSnakePathToTarget();
                 snake.move();
-                checkSnakeEatedFruit();
+                checkSnakeEatApple();
+                checkSnakeEatBadApple();
                 if (snake.isBittenItselfOrWall()) {
                     gameOver();
                 }
@@ -134,13 +136,31 @@ public class View extends javax.swing.JPanel {
 //        snake.setPath(controller.getPath());
     }
 
-    private Apple checkSnakeEatedFruit() {
-        Apple eatedApple = tryToEatFruitAndGet();
+    private Element checkSnakeEatApple() {
+        Element eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
-            incraseScore(eatedApple.getSCORE());
+            incraseScore(this.snake.size());
 //            removeEatedFruit();
             createApple();
             snake.grow();
+            // For disable event sound
+            playSound = new PlaySound();
+            playSound.start();
+        }
+        return null;
+    }
+
+    private Element checkSnakeEatBadApple() {
+        Element eatBadApple = tryToEatAndGet(this.badApple);
+        if (eatBadApple != null) {
+//            incraseScore(this.snake.size());
+//            removeEatedFruit();
+            createBadApple();
+            if (this.snake.size() <= DECRESE_LENGTH) {
+                gameOver();
+                return eatBadApple;
+            }
+            snake.decrease(DECRESE_LENGTH);
             // For disable event sound
             playSound = new PlaySound();
             playSound.start();
@@ -156,10 +176,10 @@ public class View extends javax.swing.JPanel {
         this.score += score;
     }
 
-    private Apple tryToEatFruitAndGet() {
+    private Element tryToEatAndGet(Element target) {
         for (Element head : snake.getHeads()) {
-            if (apple.getX() == head.getX() && apple.getY() == head.getY()) {
-                return apple;
+            if (target.getX() == head.getX() && target.getY() == head.getY()) {
+                return target;
             }
         }
         return null;
@@ -200,7 +220,7 @@ public class View extends javax.swing.JPanel {
         //System.out.println("Snake direction: " + snake.getDirection());
         repaint();
         sleep(GAME_OVER_DELAY);
-        score = 0;
+//        score = 0;
 //        apple = null;
         snake.create(SNAKE_LENGTH);
         createApple();
@@ -259,14 +279,14 @@ public class View extends javax.swing.JPanel {
     private void paintScore(Graphics g) {
         Color tmpColor = g.getColor();
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + score, 50, 50);
+        g.drawString("Score: " + score, 10, 10);
         g.setColor(tmpColor);
     }
 
     private void paintDelay(Graphics g) {
         Color tmpColor = g.getColor();
         g.setColor(Color.WHITE);
-        g.drawString("Delay: " + DELAY, 50, 70);
+        g.drawString("Delay: " + DELAY, 10, 30);
         g.setColor(tmpColor);
     }
 

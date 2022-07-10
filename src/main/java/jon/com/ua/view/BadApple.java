@@ -9,7 +9,7 @@ import java.awt.*;
  */
 public class BadApple extends Element {
     private static final int SCORE = 100;
-    private static Color color = Color.RED;
+    private static Color color = Color.BLACK;
 
     public BadApple(int x, int y) {
         super(color, "", x, y);

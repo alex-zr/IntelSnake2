@@ -17,7 +17,7 @@ import java.util.List;
  * User: your name
  */
 public class YourSolver implements Solver<Board> {
-    public static final int REDUCE_SIZE = 30;
+    public static final int REDUCE_SIZE = 20;
 
     private Dice dice;
     private Board board;

@@ -115,13 +115,17 @@ public class Snake {
                 newHead = new Element(snakeColor, "", lead.getX() - 1, lead.getY());
                 break;
             case UP:
-                newHead = new Element(snakeColor, "", lead.getX(), lead.getY() - 1);
+                newHead = new Element(snakeColor, "", lead.getX(), lead.getY() + 1);
                 break;
             case DOWN:
-                newHead = new Element(snakeColor, "", lead.getX(), lead.getY() + 1);
+                newHead = new Element(snakeColor, "", lead.getX(), lead.getY() - 1);
                 break;
         }
         return newHead;
+    }
+
+    public int size() {
+        return this.heads.size();
     }
 
     public void hide() {
@@ -215,5 +219,13 @@ public class Snake {
             sb.append("[" + head.getX() + "," + head.getY() + "]");
         }
         return sb.toString();
+    }
+
+    public void decrease(int length) {
+        if (length < size()) {
+            for (int i = 0; i < length; i++) {
+                this.heads.removeLast();
+            }
+        }
     }
 }
