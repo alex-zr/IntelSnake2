@@ -1,11 +1,10 @@
 package jon.com.ua.view;
 
+import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.pathfind.DirectionCompass;
-
 
 import java.awt.*;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.

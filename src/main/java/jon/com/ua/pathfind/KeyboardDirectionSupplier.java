@@ -1,6 +1,6 @@
 package jon.com.ua.pathfind;
 
-import jon.com.ua.view.Direction;
+import com.codenjoy.dojo.services.Direction;
 
 import javax.swing.*;
 import java.awt.event.KeyAdapter;

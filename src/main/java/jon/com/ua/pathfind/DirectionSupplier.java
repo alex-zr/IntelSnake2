@@ -1,9 +1,6 @@
 package jon.com.ua.pathfind;
 
-import jon.com.ua.view.Direction;
-
-import java.util.Collections;
-import java.util.List;
+import com.codenjoy.dojo.services.Direction;
 
 /**
  * Created with IntelliJ IDEA.

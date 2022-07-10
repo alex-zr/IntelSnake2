@@ -1,6 +1,6 @@
 package jon.com.ua.pathfind;
 
-import jon.com.ua.view.Direction;
+import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.view.Element;
 import jon.com.ua.view.Fruit;
 import jon.com.ua.view.Snake;

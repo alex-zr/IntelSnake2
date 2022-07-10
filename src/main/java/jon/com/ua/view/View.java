@@ -1,9 +1,14 @@
 package jon.com.ua.view;
 
 import com.codenjoy.dojo.client.AbstractBoard;
+import com.codenjoy.dojo.client.ClientBoard;
 import com.codenjoy.dojo.client.Solver;
+import com.codenjoy.dojo.client.UrlParser;
+import com.codenjoy.dojo.client.WebSocketRunner;
+import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
 import jon.com.ua.client.Elements;
+import jon.com.ua.client.YourSolver;
 import jon.com.ua.pathfind.DirectionSupplier;
 import jon.com.ua.pathfind.DirectionSupplierFactory;
 
@@ -22,13 +27,13 @@ import java.util.Random;
  * Date: 1/23/13
  */
 public class View extends javax.swing.JPanel {
-    public static final int BOARD_SIZE = 10;
+//    public static final int BOARD_SIZE = 10;
     public static final int SNAKE_LENGTH = 2;
     public static final Color FIELD_COLOR = Color.LIGHT_GRAY;
     public static int DELAY = 250;
     private static final int GAME_OVER_DELAY = 3000;
 
-    private AbstractBoard<Elements> board = new Board(BOARD_SIZE);
+    private Board board;
 //    private final Field field = new Field(FIELD_SIZE, FIELD_HEIGHT);
     private final Snake snake = new Snake(SNAKE_LENGTH);
     private final List<Fruit> fruits = new ArrayList<>();
@@ -40,8 +45,9 @@ public class View extends javax.swing.JPanel {
     private boolean isPause;
     private PlaySound playSound;
 
-    public View(JFrame main) {
-        // Set controller here
+    public View(JFrame main, Solver<Board> solver, Board board) {
+        this.solver = solver;
+        this.board = board;
         controller = new DirectionSupplierFactory(main, board, snake, fruits).getSimpleDirectionBridge();
         putFruit();
         new PlayBackground().start();
@@ -187,21 +193,21 @@ public class View extends javax.swing.JPanel {
 
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                initWindow();
-            }
-        });
+        SwingUtilities.invokeLater(() -> initWindow(new YourSolver(null), new Board()));
     }
 
-    private static void initWindow() {
+    private static void initWindow(Solver<Board> solver, Board board) {
         JFrame main = new JFrame("Intellectual snake");
         main.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        final View view = new View(main);
+        final View view = new View(main, solver, board);
 
         main.setContentPane(view);
         main.setBounds(100, 100, 595, 600);
         main.setVisible(true);
+    }
+
+    public static void runClient(Solver<Board> solver, Board board) {
+        SwingUtilities.invokeLater(() -> initWindow(solver, board));
     }
 
     public void paintComponent(Graphics g) {
