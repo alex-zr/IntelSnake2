@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,6 +29,7 @@ public class View extends javax.swing.JPanel {
     public static int DELAY = 250;
     public static final boolean MUTE_SOUND = true;
 
+    public boolean editMode = false;
     private BoardExt board;
     private List<Wall> walls = new ArrayList<>();
     private Apple apple;
@@ -57,7 +60,10 @@ public class View extends javax.swing.JPanel {
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                     isPause = !isPause;
-                    if (!!MUTE_SOUND) {
+                    if (!MUTE_SOUND) {
+                        if (PlayBackground.clip == null) {
+                            return;
+                        }
                         if (isPause) {
                             backFramePosition = PlayBackground.clip.getFramePosition();
                             PlayBackground.clip.stop();
@@ -80,6 +86,25 @@ public class View extends javax.swing.JPanel {
                 }
                 if (e.getKeyCode() == KeyEvent.VK_DOWN && DELAY >= 50) {
                     DELAY -= 50;
+                }
+                if (e.getKeyCode() == KeyEvent.VK_E) {
+                    editMode = !editMode;
+                    isPause = editMode;
+                    if (!editMode) {
+                        createApple();
+                    }
+                }
+            }
+        });
+        main.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int y = Element.realToScr(e.getY() / CELL_SIZE);
+                int x = e.getX() / CELL_SIZE;
+                Element element = new Element(null, null, x, y);
+                if (!isWall(element) && !snake.isBody(element) && !badApple.itsMe(element)) {
+                    createApple(x, y);
+                    isPause = false;
                 }
             }
         });
@@ -146,8 +171,12 @@ public class View extends javax.swing.JPanel {
     private Element checkSnakeEatApple() {
         Element eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
+            if (editMode) {
+                isPause = true;
+            } else {
+                createApple();
+            }
             increaseScore(this.snake.size());
-            createApple();
             snake.grow();
             // For disable event sound
             if (!MUTE_SOUND) {
@@ -187,6 +216,10 @@ public class View extends javax.swing.JPanel {
             }
         }
         return null;
+    }
+
+    private void createApple(int x, int y) {
+        apple = new Apple(x, y);
     }
 
     private void createApple() {
@@ -267,6 +300,7 @@ public class View extends javax.swing.JPanel {
         paintCenterText(graphics);
         paintScore(graphics);
         paintDelay(graphics);
+        paintHelp(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
         }
@@ -289,6 +323,13 @@ public class View extends javax.swing.JPanel {
         Color tmpColor = g.getColor();
         g.setColor(Color.WHITE);
         g.drawString("Delay: " + DELAY, 10, 30);
+        g.setColor(tmpColor);
+    }
+
+    private void paintHelp(Graphics g) {
+        Color tmpColor = g.getColor();
+        g.setColor(Color.WHITE);
+        g.drawString("Pause: space  |  Edit mode: e  |  Decrease score: down  |  Increase score: up", 100, 30);
         g.setColor(tmpColor);
     }
 

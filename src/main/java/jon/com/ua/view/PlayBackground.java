@@ -14,11 +14,15 @@ public class PlayBackground extends Thread {
     private static File soundFile = new File("smb-overworld.wav");
     private static AudioInputStream ais;
     public static Clip clip;
+    private boolean isPaused;
 
     @Override
     public void run() {
         try {
             while (!isInterrupted()) {
+                if (isPaused) {
+                    continue;
+                }
                 ais = AudioSystem.getAudioInputStream(soundFile);
                 clip = AudioSystem.getClip();
                 clip.open(ais);
@@ -33,5 +37,9 @@ public class PlayBackground extends Thread {
         } catch (Exception exc) {
             exc.printStackTrace();
         }
+    }
+
+    public void setPaused(boolean paused) {
+        isPaused = paused;
     }
 }
