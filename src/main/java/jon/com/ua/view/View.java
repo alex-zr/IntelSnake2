@@ -1,6 +1,5 @@
 package jon.com.ua.view;
 
-import com.codenjoy.dojo.client.Solver;
 import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
 import jon.com.ua.client.YourSolver;
@@ -26,6 +25,7 @@ public class View extends javax.swing.JPanel {
     public static final int SNAKE_LENGTH = 2;
     public static final int DECREASE_LENGTH = 10;
     public static int DELAY = 250;
+    public static final boolean MUTE_SOUND = true;
 
     private BoardExt board;
     private List<Wall> walls = new ArrayList<>();
@@ -34,19 +34,21 @@ public class View extends javax.swing.JPanel {
     private Snake snake;
     private final Random rnd = new Random();
     private String textOnCenter;
-    private Solver<Board> solver;
+    private YourSolver solver;
     private int score;
     private boolean isPause;
     private PlaySound playSound;
 
-    public View(JFrame main, Solver<Board> solver, BoardExt board) {
+    public View(JFrame main, YourSolver solver, BoardExt board) {
         this.solver = solver;
         this.board = new BoardExt();
         createWalls();
         createApple();
         createBadApple();
         snake = new Snake(SNAKE_LENGTH, this.walls, this.apple, this.badApple);
-        new PlayBackground().start();
+        if (!MUTE_SOUND) {
+            new PlayBackground().start();
+        }
         main.addKeyListener(new KeyAdapter() {
             private int backFramePosition;
             private int framePosition;
@@ -55,19 +57,21 @@ public class View extends javax.swing.JPanel {
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                     isPause = !isPause;
-                    if (isPause) {
-                        backFramePosition = PlayBackground.clip.getFramePosition();
-                        PlayBackground.clip.stop();
-                        if (PlaySound.clip != null) {
-                            framePosition = PlaySound.clip.getFramePosition();
-                            PlaySound.clip.stop();
-                        }
-                    } else {
-                        PlayBackground.clip.setFramePosition(backFramePosition);
-                        PlayBackground.clip.start();
-                        if (PlaySound.clip != null) {
-                            PlaySound.clip.setFramePosition(framePosition);
-                            PlaySound.clip.start();
+                    if (!!MUTE_SOUND) {
+                        if (isPause) {
+                            backFramePosition = PlayBackground.clip.getFramePosition();
+                            PlayBackground.clip.stop();
+                            if (PlaySound.clip != null) {
+                                framePosition = PlaySound.clip.getFramePosition();
+                                PlaySound.clip.stop();
+                            }
+                        } else {
+                            PlayBackground.clip.setFramePosition(backFramePosition);
+                            PlayBackground.clip.start();
+                            if (PlaySound.clip != null) {
+                                PlaySound.clip.setFramePosition(framePosition);
+                                PlaySound.clip.start();
+                            }
                         }
                     }
                 }
@@ -89,13 +93,13 @@ public class View extends javax.swing.JPanel {
                 System.out.println(this.board);
                 setSnakeDirection();
                 setSnakePathToTarget();
+                repaint();
                 snake.move();
                 checkSnakeEatApple();
                 checkSnakeEatBadApple();
                 if (snake.isBittenItselfOrWall()) {
                     gameOver();
                 }
-                repaint();
                 checkSnakeDead();
             }
         }).start();
@@ -123,16 +127,20 @@ public class View extends javax.swing.JPanel {
 
     private void setSnakeDirection() {
         try {
-            Direction direction = Direction.valueOf(solver.get((Board) board.clone()));
+            String directionName = solver.get((Board) board.clone());
+            if (directionName == null) {
+                System.err.println("Direction can't be null");
+                throw new NullPointerException("Direction can't be null");
+            }
+            Direction direction = Direction.valueOf(directionName);
             snake.setDirection(direction);
         } catch (IllegalArgumentException | CloneNotSupportedException e) {
-            // TODO print illegal direction
             e.printStackTrace();
         }
     }
 
     private void setSnakePathToTarget() {
-//        snake.setPath(controller.getPath());
+        snake.setPath(solver.getPath());
     }
 
     private Element checkSnakeEatApple() {
@@ -142,8 +150,10 @@ public class View extends javax.swing.JPanel {
             createApple();
             snake.grow();
             // For disable event sound
-            playSound = new PlaySound();
-            playSound.start();
+            if (!MUTE_SOUND) {
+                playSound = new PlaySound();
+                playSound.start();
+            }
         }
         return null;
     }
@@ -158,8 +168,10 @@ public class View extends javax.swing.JPanel {
             }
             snake.decrease(DECREASE_LENGTH);
             // For disable event sound
-            playSound = new PlaySound();
-            playSound.start();
+            if (!MUTE_SOUND) {
+                playSound = new PlaySound();
+                playSound.start();
+            }
         }
         return null;
     }
@@ -227,7 +239,7 @@ public class View extends javax.swing.JPanel {
         SwingUtilities.invokeLater(() -> initWindow(new YourSolver(null), null));
     }
 
-    private static void initWindow(Solver<Board> solver, Board board) {
+    private static void initWindow(YourSolver solver, Board board) {
         JFrame main = new JFrame("Intellectual snake");
         main.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         final View view = new View(main, solver, new BoardExt());
@@ -238,7 +250,7 @@ public class View extends javax.swing.JPanel {
         main.setVisible(true);
     }
 
-    public static void runClient(Solver<Board> solver, Board board) {
+    public static void runClient(YourSolver solver, Board board) {
         SwingUtilities.invokeLater(() -> initWindow(solver, board));
     }
 
@@ -250,11 +262,14 @@ public class View extends javax.swing.JPanel {
         paintWalls(graphics, cellHeight, cellWidth);
         snake.paint(graphics, cellHeight, cellWidth);
         apple.paint(graphics, cellHeight, cellWidth);
+        snake.paintPath(graphics, cellHeight, cellWidth, null);
         badApple.paint(graphics, cellHeight, cellWidth);
-//        snake.paintPath(g, cellHeight, cellWidth);
         paintCenterText(graphics);
         paintScore(graphics);
         paintDelay(graphics);
+        if (snake.isGrow()) {
+            paintPlusScore(graphics);
+        }
     }
 
     private void paintWalls(Graphics g, int cellHeight, int cellWidth) {
@@ -282,14 +297,23 @@ public class View extends javax.swing.JPanel {
             return;
         }
         Rectangle clipBounds = g.getClipBounds();
-        int fintSize = 30;
-        g.setFont(new Font("Arial", Font.PLAIN, fintSize));
+        int fontSize = 30;
+        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         Color tmpColor = g.getColor();
         g.setColor(Color.WHITE);
         g.drawString(textOnCenter, (int) (clipBounds.getWidth() / 2) - textOnCenter.length() / 2 * 30, (int) (clipBounds.getHeight() / 2));
         g.setColor(tmpColor);
     }
 
+    private void paintPlusScore(Graphics g) {
+        Rectangle clipBounds = g.getClipBounds();
+        int fontSize = 50;
+        g.setFont(new Font("Arial", Font.BOLD, fontSize));
+        Color tmpColor = g.getColor();
+        g.setColor(Color.RED);
+        g.drawString("+" + snake.size(), (int) (clipBounds.getWidth() / 2), (int) (clipBounds.getHeight() / 2));
+        g.setColor(tmpColor);
+    }
 
     private void paintGrid(Graphics g, int cellHeight, int cellWidth) {
         int x = 0;

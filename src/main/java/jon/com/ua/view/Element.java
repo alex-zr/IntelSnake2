@@ -48,10 +48,9 @@ public class Element {
         g.fill3DRect(x,  y, cellWidth, cellHeight, true);
     }
 
-    private int realToScr(int y) {
+    public static int realToScr(int y) {
         return BoardExt.SIZE - y - 1;
     }
-
 
     @Override
     public boolean equals(Object o) {

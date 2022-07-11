@@ -1,6 +1,8 @@
 package jon.com.ua.view;
 
 import com.codenjoy.dojo.services.Direction;
+import com.codenjoy.dojo.services.Point;
+
 
 import java.awt.*;
 import java.util.LinkedList;
@@ -19,7 +21,7 @@ public class Snake {
     private List<Wall> walls;
     private BadApple badApple;
     private Apple apple;
-//    private List<Vertex> path;
+    private List<Point> path;
 
     public Snake(int length, List<Wall> walls, Apple apple, BadApple badApple) {
         this.walls = walls;
@@ -62,22 +64,27 @@ public class Snake {
     }
 
     // TODO implement path painting
-/*    public void paintPath(Graphics g, int cellHeight, int cellWidth) {
-        Vertex previous = null;
-        int headX = 0;
-        int headY = 0;
-        if (path == null) {
+    public void paintPath(Graphics g, int cellHeight, int cellWidth, List<Point> path) {
+        if (path != null) {
+            this.path = path;
+        }
+        if (this.path == null) {
             return;
         }
-        for (Vertex current : path) {
+
+        Point previous = null;
+        int headX = 0;
+        int headY = 0;
+
+        for (Point current : this.path) {
             if (previous == null) {
                 previous = current;
                 continue;
             }
-            int prevX = previous.getElement().getX() * cellWidth + cellWidth/2;
-            int prevY = previous.getElement().getY() * cellHeight + cellHeight/2;
-            headX = current.getElement().getX() * cellWidth + cellWidth/2;
-            headY = current.getElement().getY() * cellHeight + cellHeight/2;
+            int prevX = previous.getX() * cellWidth + cellWidth/2;
+            int prevY = Element.realToScr(previous.getY()) * cellHeight + cellHeight/2;
+            headX = current.getX() * cellWidth + cellWidth/2;
+            headY = Element.realToScr(current.getY()) * cellHeight + cellHeight/2;
             g.setColor(Color.ORANGE);
             drawDashedLine(g, prevX, prevY, headX, headY);
 
@@ -85,7 +92,7 @@ public class Snake {
         }
         g.setColor(Color.RED);
         g.drawRect(headX, headY, 2, 2);
-    }*/
+    }
 
     public void drawDashedLine(Graphics g, int x1, int y1, int x2, int y2) {
         Graphics2D g2d = (Graphics2D) g.create();
@@ -106,22 +113,13 @@ public class Snake {
     }
 
     private Element getNewHead(Element lead) {
-        Element newHead = null;
-        switch (direction) {
-            case RIGHT:
-                newHead = new Element(snakeColor, "", lead.getX() + 1, lead.getY());
-                break;
-            case LEFT:
-                newHead = new Element(snakeColor, "", lead.getX() - 1, lead.getY());
-                break;
-            case UP:
-                newHead = new Element(snakeColor, "", lead.getX(), lead.getY() + 1);
-                break;
-            case DOWN:
-                newHead = new Element(snakeColor, "", lead.getX(), lead.getY() - 1);
-                break;
-        }
-        return newHead;
+        return switch (direction) {
+            case RIGHT -> new Element(snakeColor, "", lead.getX() + 1, lead.getY());
+            case LEFT -> new Element(snakeColor, "", lead.getX() - 1, lead.getY());
+            case UP -> new Element(snakeColor, "", lead.getX(), lead.getY() + 1);
+            case DOWN -> new Element(snakeColor, "", lead.getX(), lead.getY() - 1);
+            default -> null;
+        };
     }
 
     public int size() {
@@ -129,8 +127,7 @@ public class Snake {
     }
 
     public void hide() {
-        for (int i = 0; i < heads.size(); i++) {
-            Element head = heads.get(i);
+        for (Element head : heads) {
             head.setX(Integer.MAX_VALUE);
             head.setY(Integer.MAX_VALUE);
         }
@@ -140,17 +137,13 @@ public class Snake {
         isGrow = true;
     }
 
+    public boolean isGrow() {
+        return isGrow;
+    }
+
     public boolean isBittenItselfOrWall() {
         Element lead = heads.getFirst();
         boolean isMe = heads.stream().skip(1).anyMatch(h -> h.itsMe(lead));
-/*
-        for (int i = 1; i < heads.size(); i++) {
-            Element head = heads.get(i);
-            if (lead.itsMe(head)) {
-                return true;
-            }
-        }
-*/
         boolean isWall = walls.stream().anyMatch(w -> w.itsMe(lead));
         return isMe || isWall;
     }
@@ -181,36 +174,22 @@ public class Snake {
         return false;
     }
 
-/*    public boolean isBody(Vertex vertex) {
-        return isHead(vertex.getElement());
-    }*/
-
-    public Element getLead() {
-        return heads.getFirst();
-    }
-
     public boolean isHead(Element element) {
         Element lead = heads.getFirst();
         return isCollision(lead, element);
     }
 
-/*    public boolean isDeadGlass(Element nextElement, DirectionCompass compass) {
-        boolean isGlass = true;
-        for (Element element : compass.asList()) {
-            if (!isBody(element)) {
-                isGlass = false;
-                break;
+    public void decrease(int length) {
+        if (length < size()) {
+            for (int i = 0; i < length; i++) {
+                this.heads.removeLast();
             }
         }
-        if (isGlass) {
-            System.out.println("---- Dead glass ----");
-        }
-        return isGlass;
-    }*/
+    }
 
-/*    public void setPath(List<Vertex> path) {
+    public void setPath(List<Point> path) {
         this.path = path;
-    }*/
+    }
 
     @Override
     public String toString() {
@@ -221,11 +200,4 @@ public class Snake {
         return sb.toString();
     }
 
-    public void decrease(int length) {
-        if (length < size()) {
-            for (int i = 0; i < length; i++) {
-                this.heads.removeLast();
-            }
-        }
-    }
 }
