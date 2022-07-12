@@ -33,7 +33,7 @@ public class Snake {
 
     public void create(int length) {
         heads = new LinkedList<>();
-        int x = BoardExt.SIZE / 2;
+        int x = BoardExt.SIZE / 2 - length;
         int y = BoardExt.SIZE / 2;
         for (int i = 0; i < length; i++) {
             heads.addFirst(new Element(snakeColor, "", x++, y));

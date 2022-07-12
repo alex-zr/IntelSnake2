@@ -12,6 +12,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -23,10 +24,10 @@ public class View extends javax.swing.JPanel {
     public static final int CELL_SIZE = 50;
     public static final Color FIELD_COLOR = Color.LIGHT_GRAY;
     public static final Color WALL_COLOR = Color.GRAY;
-    private static final int GAME_OVER_DELAY = 3000;
+    private static final int GAME_OVER_DELAY = 2000;
     public static final int SNAKE_LENGTH = 2;
     public static final int DECREASE_LENGTH = 10;
-    public static int DELAY = 250;
+    public static int DELAY = 400;
     public static final boolean MUTE_SOUND = true;
 
     public boolean editMode = false;
@@ -152,11 +153,9 @@ public class View extends javax.swing.JPanel {
 
     private void setSnakeDirection() {
         try {
-            String directionName = solver.get((Board) board.clone());
-            if (directionName == null) {
-                System.err.println("Direction can't be null");
-                throw new NullPointerException("Direction can't be null");
-            }
+            String directionName = Optional.ofNullable(
+                    solver.get((Board) board.clone())
+            ).orElse(Direction.LEFT.toString());
             Direction direction = Direction.valueOf(directionName);
             snake.setDirection(direction);
         } catch (IllegalArgumentException | CloneNotSupportedException e) {
@@ -314,13 +313,17 @@ public class View extends javax.swing.JPanel {
 
     private void paintScore(Graphics g) {
         Color tmpColor = g.getColor();
+        int fontSize = 14;
+        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + score, 10, 10);
+        g.drawString("Score: " + score, 10, 12);
         g.setColor(tmpColor);
     }
 
     private void paintDelay(Graphics g) {
         Color tmpColor = g.getColor();
+        int fontSize = 14;
+        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         g.setColor(Color.WHITE);
         g.drawString("Delay: " + DELAY, 10, 30);
         g.setColor(tmpColor);
@@ -328,6 +331,8 @@ public class View extends javax.swing.JPanel {
 
     private void paintHelp(Graphics g) {
         Color tmpColor = g.getColor();
+        int fontSize = 14;
+        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         g.setColor(Color.WHITE);
         g.drawString("Pause: space  |  Edit mode: e  |  Decrease score: down  |  Increase score: up", 100, 30);
         g.setColor(tmpColor);
