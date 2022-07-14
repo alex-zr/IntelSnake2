@@ -1,12 +1,38 @@
-package jon.com.ua.view;
+package jon.com.ua.view.snake;
 
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
+import jon.com.ua.view.Apple;
+import jon.com.ua.view.BadApple;
+import jon.com.ua.view.BoardExt;
+import jon.com.ua.view.Element;
+import jon.com.ua.view.Wall;
 
 
 import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.codenjoy.dojo.games.snake.Element.HEAD_DOWN;
+import static com.codenjoy.dojo.games.snake.Element.HEAD_LEFT;
+import static com.codenjoy.dojo.games.snake.Element.HEAD_RIGHT;
+import static com.codenjoy.dojo.games.snake.Element.HEAD_UP;
+import static com.codenjoy.dojo.games.snake.Element.NONE;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_END_DOWN;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_END_LEFT;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_END_RIGHT;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_END_UP;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_HORIZONTAL;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_LEFT_DOWN;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_LEFT_UP;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_RIGHT_DOWN;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_RIGHT_UP;
+import static com.codenjoy.dojo.games.snake.Element.TAIL_VERTICAL;
+import static com.codenjoy.dojo.services.Direction.DOWN;
+import static com.codenjoy.dojo.services.Direction.LEFT;
+import static com.codenjoy.dojo.services.Direction.RIGHT;
+import static com.codenjoy.dojo.services.Direction.UP;
+import static jon.com.ua.view.snake.BodyDirection.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -63,7 +89,6 @@ public class Snake {
         }
     }
 
-    // TODO implement path painting
     public void paintPath(Graphics g, int cellHeight, int cellWidth, List<Point> path) {
         if (path != null) {
             this.path = path;
@@ -109,6 +134,7 @@ public class Snake {
         if (!isGrow) {
             heads.removeLast();
         }
+
         isGrow = false;
     }
 
@@ -174,6 +200,15 @@ public class Snake {
         return false;
     }
 
+    public boolean isBodyWithoutHeadAndTail(Element element) {
+        for (Element head : heads) {
+            if (!isHead(element) && isCollision(head, element) && !isCollision(head, getTail())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isHead(Element element) {
         Element lead = heads.getFirst();
         return isCollision(lead, element);
@@ -189,6 +224,102 @@ public class Snake {
 
     public void setPath(List<Point> path) {
         this.path = path;
+    }
+
+    public BodyDirection getBodyDirection(Element curr) {
+        int currIndex = heads.indexOf(curr);
+        Element prev = heads.get(currIndex - 1);
+        Element next = heads.get(currIndex + 1);
+
+        BodyDirection nextPrev = orientation(next, prev);
+        if (nextPrev != null) {
+            return nextPrev;
+        }
+
+        if (orientation(prev, curr) == HORIZONTAL) {
+            boolean clockwise = curr.getY() < next.getY() ^ curr.getX() > prev.getX();
+            if (curr.getY() < next.getY()) {
+                return (clockwise)?TURNED_RIGHT_UP:TURNED_LEFT_UP;
+            } else {
+                return (clockwise)?TURNED_LEFT_DOWN:TURNED_RIGHT_DOWN;
+            }
+        } else {
+            boolean clockwise = curr.getX() < next.getX() ^ curr.getY() < prev.getY();
+            if (curr.getX() < next.getX()) {
+                return (clockwise)?TURNED_RIGHT_DOWN:TURNED_RIGHT_UP;
+            } else {
+                return (clockwise)?TURNED_LEFT_UP:TURNED_LEFT_DOWN;
+            }
+        }
+    }
+
+    public BodyDirection orientation(Element curr, Element next) {
+        if (curr.getX() == next.getX()) {
+            return VERTICAL;
+        } else if (curr.getY() == next.getY()) {
+            return HORIZONTAL;
+        } else {
+            return null;
+        }
+    }
+
+    public Element getTail() {
+        return heads.getLast();
+    }
+
+    public Direction getTailDirection() {
+        Element prev = heads.get(1);
+        Element tail = getTail();
+
+        if (prev.getX() == tail.getX()) {
+            return (prev.getY() < tail.getY())?UP:DOWN;
+        } else {
+            return (prev.getX() < tail.getX())?RIGHT:LEFT;
+        }
+    }
+
+    public com.codenjoy.dojo.games.snake.Element getTailLastElement() {
+        return getTailLastElement(getTailDirection());
+    }
+
+    public com.codenjoy.dojo.games.snake.Element getTailLastElement(Direction direction) {
+        switch (direction) {
+        case DOWN : return TAIL_END_DOWN;
+        case UP : return TAIL_END_UP;
+        case LEFT : return TAIL_END_LEFT;
+        case RIGHT : return TAIL_END_RIGHT;
+        default : return NONE;
+        }
+    }
+
+    public com.codenjoy.dojo.games.snake.Element getHead() {
+        return getHead(getDirection());
+    }
+
+    public com.codenjoy.dojo.games.snake.Element getHead(Direction direction) {
+        switch (direction) {
+        case DOWN : return HEAD_DOWN;
+        case UP : return HEAD_UP;
+        case LEFT : return HEAD_LEFT;
+        case RIGHT : return HEAD_RIGHT;
+        default : return NONE;
+        }
+    }
+
+    public com.codenjoy.dojo.games.snake.Element getBody(Element element) {
+        return getBody(getBodyDirection(element));
+    }
+
+    public com.codenjoy.dojo.games.snake.Element getBody(BodyDirection bodyDirection) {
+        switch (bodyDirection) {
+        case HORIZONTAL : return TAIL_HORIZONTAL;
+        case VERTICAL : return TAIL_VERTICAL;
+        case TURNED_LEFT_DOWN : return TAIL_LEFT_DOWN;
+        case TURNED_LEFT_UP : return TAIL_LEFT_UP;
+        case TURNED_RIGHT_DOWN : return TAIL_RIGHT_DOWN;
+        case TURNED_RIGHT_UP : return TAIL_RIGHT_UP;
+        default : return NONE;
+        }
     }
 
     @Override

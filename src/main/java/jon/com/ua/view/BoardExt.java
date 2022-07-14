@@ -3,18 +3,9 @@ package jon.com.ua.view;
 import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
 import jon.com.ua.client.Elements;
+import jon.com.ua.view.snake.Snake;
 
 import java.util.List;
-
-import static jon.com.ua.client.Elements.HEAD_DOWN;
-import static jon.com.ua.client.Elements.HEAD_LEFT;
-import static jon.com.ua.client.Elements.HEAD_RIGHT;
-import static jon.com.ua.client.Elements.HEAD_UP;
-import static jon.com.ua.client.Elements.NONE;
-import static jon.com.ua.client.Elements.TAIL_END_DOWN;
-import static jon.com.ua.client.Elements.TAIL_END_LEFT;
-import static jon.com.ua.client.Elements.TAIL_END_RIGHT;
-import static jon.com.ua.client.Elements.TAIL_END_UP;
 
 public class BoardExt extends Board implements Cloneable {
     public static final int SIZE = 15;
@@ -83,33 +74,16 @@ public class BoardExt extends Board implements Cloneable {
     public void putSnake(Snake snake) {
         for (Element head : snake.getHeads()) {
             if ((snake.isHead(head))) {
-                Elements headElement = getHeadElement(snake.getDirection());
+                com.codenjoy.dojo.games.snake.Element headElement = snake.getHead();
                 set(head.getX(), head.getY(), headElement.ch());
+            } else if (snake.isBodyWithoutHeadAndTail(head)) {
+                com.codenjoy.dojo.games.snake.Element bodyElement = snake.getBody(head);
+                set(head.getX(), head.getY(), bodyElement.ch());
             } else {
-                Elements tailElement = getTailElement(snake.getDirection());
-                set(head.getX(), head.getY(), tailElement.ch());
+                com.codenjoy.dojo.games.snake.Element tail = snake.getTailLastElement();
+                set(head.getX(), head.getY(), tail.ch());
             }
         }
-    }
-
-    public static Elements getTailElement(Direction direction) {
-        return switch (direction) {
-            case DOWN -> TAIL_END_DOWN;
-            case UP -> TAIL_END_UP;
-            case LEFT -> TAIL_END_LEFT;
-            case RIGHT -> TAIL_END_RIGHT;
-            default -> NONE;
-        };
-    }
-
-    public static Elements getHeadElement(Direction direction) {
-        return switch (direction) {
-            case DOWN -> HEAD_DOWN;
-            case UP -> HEAD_UP;
-            case LEFT -> HEAD_LEFT;
-            case RIGHT -> HEAD_RIGHT;
-            default -> NONE;
-        };
     }
 
     @Override

@@ -3,6 +3,7 @@ package jon.com.ua.view;
 import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
 import jon.com.ua.client.YourSolver;
+import jon.com.ua.view.snake.Snake;
 
 import javax.swing.*;
 import java.awt.*;
