@@ -8,7 +8,7 @@ import java.awt.*;
  * Date: 7/10/22
  */
 
-public class Wall extends Element {
+public class Wall extends BoardElement {
     private static Color color = Color.GRAY;
 
     public Wall(int x, int y) {

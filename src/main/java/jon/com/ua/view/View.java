@@ -2,6 +2,7 @@ package jon.com.ua.view;
 
 import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
+import jon.com.ua.client.Elements;
 import jon.com.ua.client.YourSolver;
 import jon.com.ua.view.snake.Snake;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Stream;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,7 +24,7 @@ import java.util.Random;
  * Date: 1/23/13
  */
 public class View extends javax.swing.JPanel {
-    public static final int CELL_SIZE = 50;
+    public static final int CELL_SIZE = 30;
     public static final Color FIELD_COLOR = Color.LIGHT_GRAY;
     public static final Color WALL_COLOR = Color.GRAY;
     private static final int GAME_OVER_DELAY = 2000;
@@ -32,6 +34,7 @@ public class View extends javax.swing.JPanel {
     public static final boolean MUTE_SOUND = true;
 
     public boolean editMode = false;
+    public boolean isPaintSprites = true;
     private BoardExt board;
     private List<Wall> walls = new ArrayList<>();
     private Apple apple;
@@ -44,13 +47,13 @@ public class View extends javax.swing.JPanel {
     private boolean isPause;
     private PlaySound playSound;
 
-    public View(JFrame main, YourSolver solver, BoardExt board) {
+    public View(JFrame main, YourSolver solver) {
         this.solver = solver;
         this.board = new BoardExt();
         createWalls();
         createApple();
         createBadApple();
-        snake = new Snake(SNAKE_LENGTH, this.walls, this.apple, this.badApple);
+        snake = new Snake(SNAKE_LENGTH, this.walls, this.apple, this.badApple, this.board);
         if (!MUTE_SOUND) {
             new PlayBackground().start();
         }
@@ -101,10 +104,10 @@ public class View extends javax.swing.JPanel {
         main.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int y = Element.realToScr(e.getY() / CELL_SIZE);
+                int y = BoardElement.realToScr(e.getY() / CELL_SIZE);
                 int x = e.getX() / CELL_SIZE;
-                Element element = new Element(null, null, x, y);
-                if (!isWall(element) && !snake.isBody(element) && !badApple.itsMe(element)) {
+                BoardElement boardElement = new BoardElement(null, null, x, y);
+                if (!isWall(boardElement) && !snake.isBody(boardElement) && !badApple.itsMe(boardElement)) {
                     createApple(x, y);
                     isPause = false;
                 }
@@ -115,12 +118,12 @@ public class View extends javax.swing.JPanel {
                 if (isPause) {
                     continue;
                 }
-                View.this.sleep(DELAY);
                 this.board.render(snake, apple, badApple, walls);
                 System.out.println(this.board);
                 setSnakeDirection();
                 setSnakePathToTarget();
                 repaint();
+                View.this.sleep(DELAY);
                 snake.move();
                 checkSnakeEatApple();
                 checkSnakeEatBadApple();
@@ -168,8 +171,8 @@ public class View extends javax.swing.JPanel {
         snake.setPath(solver.getPath());
     }
 
-    private Element checkSnakeEatApple() {
-        Element eatedApple = tryToEatAndGet(this.apple);
+    private BoardElement checkSnakeEatApple() {
+        BoardElement eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
             if (editMode) {
                 isPause = true;
@@ -187,8 +190,8 @@ public class View extends javax.swing.JPanel {
         return null;
     }
 
-    private Element checkSnakeEatBadApple() {
-        Element eatBadApple = tryToEatAndGet(this.badApple);
+    private BoardElement checkSnakeEatBadApple() {
+        BoardElement eatBadApple = tryToEatAndGet(this.badApple);
         if (eatBadApple != null) {
             createBadApple();
             if (this.snake.size() <= DECREASE_LENGTH) {
@@ -209,8 +212,8 @@ public class View extends javax.swing.JPanel {
         this.score += score;
     }
 
-    private Element tryToEatAndGet(Element target) {
-        for (Element head : snake.getHeads()) {
+    private BoardElement tryToEatAndGet(BoardElement target) {
+        for (BoardElement head : snake.getHeads()) {
             if (target.getX() == head.getX() && target.getY() == head.getY()) {
                 return target;
             }
@@ -238,13 +241,13 @@ public class View extends javax.swing.JPanel {
         } while ((snake != null && snake.isBody(badApple)) || badApple.itsMe(apple) || isWall(badApple));
     }
 
-    private boolean isWall(Element element) {
-        return walls.stream().anyMatch(w -> w.itsMe(element));
+    private boolean isWall(BoardElement boardElement) {
+        return walls.stream().anyMatch(w -> w.itsMe(boardElement));
     }
 
     private void checkSnakeDead() {
         textOnCenter = null;
-        Element head = snake.getHeads().peekFirst();
+        BoardElement head = snake.getHeads().peekFirst();
         if (!BoardExt.isInBounds(head, board.size(), board.size())) {
             gameOver();
         }
@@ -275,7 +278,7 @@ public class View extends javax.swing.JPanel {
     private static void initWindow(YourSolver solver, Board board) {
         JFrame main = new JFrame("Intellectual snake");
         main.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        final View view = new View(main, solver, new BoardExt());
+        final View view = new View(main, solver);
 
         main.setContentPane(view);
         int fieldSize = CELL_SIZE * BoardExt.SIZE;
@@ -287,16 +290,25 @@ public class View extends javax.swing.JPanel {
         SwingUtilities.invokeLater(() -> initWindow(solver, board));
     }
 
+    @Override
     public void paintComponent(Graphics graphics) {
+        if (isPaintSprites) {
+            paintSprites(graphics);
+        } else {
+            paintSimple(graphics);
+        }
+    }
+
+    private void paintSimple(Graphics graphics) {
         int cellHeight = getHeight() / board.size();
         int cellWidth = getWidth() / board.size();
-        clearScreen(graphics);
+        clearScreen(graphics, null);
         paintGrid(graphics, cellHeight, cellWidth);
-        paintWalls(graphics, cellHeight, cellWidth);
-        snake.paint(graphics, cellHeight, cellWidth);
-        apple.paint(graphics, cellHeight, cellWidth);
+        paintWalls(graphics, cellHeight, cellWidth, null);
+        snake.paint(graphics, cellHeight, cellWidth, false);
+        apple.paint(graphics, cellHeight, cellWidth, null);
         snake.paintPath(graphics, cellHeight, cellWidth, null);
-        badApple.paint(graphics, cellHeight, cellWidth);
+        badApple.paint(graphics, cellHeight, cellWidth, null);
         paintCenterText(graphics);
         paintScore(graphics);
         paintDelay(graphics);
@@ -306,9 +318,28 @@ public class View extends javax.swing.JPanel {
         }
     }
 
-    private void paintWalls(Graphics g, int cellHeight, int cellWidth) {
-        for (Element wall : this.walls) {
-            wall.paint(g, cellHeight, cellWidth, WALL_COLOR);
+    private void paintSprites(Graphics graphics) {
+        int cellHeight = getHeight() / board.size();
+        int cellWidth = getWidth() / board.size();
+        clearScreen(graphics, Elements.NONE);
+//        paintGrid(graphics, cellHeight, cellWidth);
+        paintWalls(graphics, cellHeight, cellWidth, Elements.BREAK);
+        snake.paint(graphics, cellHeight, cellWidth, true);
+        apple.paint(graphics, cellHeight, cellWidth, board.getAt(apple.getX(), apple.getY()));
+        snake.paintPath(graphics, cellHeight, cellWidth, null);
+        badApple.paint(graphics, cellHeight, cellWidth, board.getAt(badApple.getX(), badApple.getY()));
+        paintCenterText(graphics);
+        paintScore(graphics);
+        paintDelay(graphics);
+        paintHelp(graphics);
+        if (snake.isGrow()) {
+            paintPlusScore(graphics);
+        }
+    }
+
+    private void paintWalls(Graphics g, int cellHeight, int cellWidth, Elements element) {
+        for (BoardElement wall : this.walls) {
+            wall.paint(g, cellHeight, cellWidth, element);
         }
     }
 
@@ -376,8 +407,17 @@ public class View extends javax.swing.JPanel {
         }
     }
 
-    private void clearScreen(Graphics g) {
-        g.setColor(FIELD_COLOR);
-        g.fill3DRect(0, 0, getWidth(), getHeight(), true);
+    private void clearScreen(Graphics graphics, Elements elements) {
+        if (elements != null) {
+            Stream.concat(
+                            board.getApples().stream(),
+                            board.getBarriers().stream()
+                    )
+                    .map(BoardElement::of)
+                    .forEach(e -> e.paintSprite(graphics, getWidth(), getHeight(), elements));
+        } else {
+            graphics.setColor(FIELD_COLOR);
+            graphics.fill3DRect(0, 0, getWidth(), getHeight(), true);
+        }
     }
 }

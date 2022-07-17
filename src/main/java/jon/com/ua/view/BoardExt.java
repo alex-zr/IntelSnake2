@@ -1,6 +1,5 @@
 package jon.com.ua.view;
 
-import com.codenjoy.dojo.services.Direction;
 import jon.com.ua.client.Board;
 import jon.com.ua.client.Elements;
 import jon.com.ua.view.snake.Snake;
@@ -37,9 +36,9 @@ public class BoardExt extends Board implements Cloneable {
         return y < 0 || y > height;
     }
 
-    public static boolean isInBounds(Element element, int width, int height) {
-        boolean isXInBounds = !isXOutOfBounds(element.getX(), width);
-        boolean isYInBounds = !isYOutOfBounds(element.getY(), height);
+    public static boolean isInBounds(BoardElement boardElement, int width, int height) {
+        boolean isXInBounds = !isXOutOfBounds(boardElement.getX(), width);
+        boolean isYInBounds = !isYOutOfBounds(boardElement.getY(), height);
         return isXInBounds && isYInBounds;
     }
 
@@ -72,15 +71,15 @@ public class BoardExt extends Board implements Cloneable {
     }
 
     public void putSnake(Snake snake) {
-        for (Element head : snake.getHeads()) {
+          for (BoardElement head : snake.getHeads()) {
             if ((snake.isHead(head))) {
-                com.codenjoy.dojo.games.snake.Element headElement = snake.getHead();
+                Elements headElement = snake.getHeadElement();
                 set(head.getX(), head.getY(), headElement.ch());
             } else if (snake.isBodyWithoutHeadAndTail(head)) {
-                com.codenjoy.dojo.games.snake.Element bodyElement = snake.getBody(head);
+                Elements bodyElement = snake.getBody(head);
                 set(head.getX(), head.getY(), bodyElement.ch());
             } else {
-                com.codenjoy.dojo.games.snake.Element tail = snake.getTailLastElement();
+                Elements tail = snake.getTailLastElement();
                 set(head.getX(), head.getY(), tail.ch());
             }
         }

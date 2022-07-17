@@ -7,15 +7,10 @@ import java.awt.*;
  * User: al1
  * Date: 7/10/22
  */
-public class BadApple extends Element {
-    private static final int SCORE = 100;
+public class BadApple extends BoardElement {
     private static Color color = Color.BLACK;
 
     public BadApple(int x, int y) {
         super(color, "", x, y);
-    }
-
-    public int getSCORE() {
-        return SCORE;
     }
 }
