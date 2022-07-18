@@ -38,6 +38,7 @@ public class View extends javax.swing.JPanel {
     public boolean isEditMode = false;
     public boolean isPaintSprites = false;
     public boolean isPaintPath = true;
+    private String manualDirection;
     private BoardExt board;
     private List<Wall> walls = new ArrayList<>();
     private Apple apple;
@@ -86,10 +87,10 @@ public class View extends javax.swing.JPanel {
                         }
                     }
                 }
-                if (e.getKeyCode() == KeyEvent.VK_UP) {
+                if (e.getKeyCode() == KeyEvent.VK_PLUS) {
                     DELAY -= 50;
                 }
-                if (e.getKeyCode() == KeyEvent.VK_DOWN && DELAY >= 50) {
+                if (e.getKeyCode() == KeyEvent.VK_MINUS && DELAY >= 50) {
                     DELAY += 50;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_E) {
@@ -112,6 +113,16 @@ public class View extends javax.swing.JPanel {
                     } else {
                         stopSound();
                     }
+                }
+                manualDirection = switch (e.getKeyCode()) {
+                    case KeyEvent.VK_UP -> Direction.UP.toString();
+                    case KeyEvent.VK_DOWN -> Direction.DOWN.toString();
+                    case KeyEvent.VK_LEFT -> Direction.LEFT.toString();
+                    case KeyEvent.VK_RIGHT -> Direction.RIGHT.toString();
+                    default -> null;
+                };
+                if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    manualDirection = Direction.UP.toString();
                 }
             }
 
@@ -203,8 +214,9 @@ public class View extends javax.swing.JPanel {
     private void setSnakeDirection() {
         try {
             String directionName = Optional.ofNullable(
-                    solver.get((Board) board.clone())
+                    manualDirection == null ? solver.get((Board) board.clone()) : manualDirection
             ).orElse(Direction.LEFT.toString());
+            manualDirection = null;
             Direction direction = Direction.valueOf(directionName);
             snake.setDirection(direction);
         } catch (IllegalArgumentException | CloneNotSupportedException e) {
@@ -305,6 +317,7 @@ public class View extends javax.swing.JPanel {
         snake.create(SNAKE_LENGTH);
         createApple();
         createBadApple();
+        manualDirection = null;
     }
 
     private void sleep(int delay) {
@@ -435,8 +448,8 @@ public class View extends javax.swing.JPanel {
         int fontSize = 14;
         graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
         graphics.setColor(Color.WHITE);
-        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: up/down", 100, 12);
-        graphics.drawString("Path: p | Graphic: s", 100, 26);
+        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: +/-", 100, 12);
+        graphics.drawString("Path: p | Graphic: s | Control: arrows | Apple: click", 100, 26);
         graphics.setColor(tmpColor);
     }
 
