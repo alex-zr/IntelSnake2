@@ -18,6 +18,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import static jon.com.ua.view.BoardElement.realToScr;
+
 /**
  * Created with IntelliJ IDEA.
  * User: al1
@@ -49,6 +51,8 @@ public class View extends javax.swing.JPanel {
     private PlaySound playSound;
     private int backFramePosition;
     private int framePosition;
+    private int editX;
+    private int editY;
 
     public View(JFrame main, YourSolver solver) {
         this.solver = solver;
@@ -113,11 +117,22 @@ public class View extends javax.swing.JPanel {
 
 
         });
-        main.addMouseListener(new MouseAdapter() {
+        addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                int y = BoardElement.realToScr(e.getY() / CELL_SIZE);
-                int x = e.getX() / CELL_SIZE;
+            public void mousePressed(MouseEvent e) {
+                editX = e.getX();
+                editY = e.getY();
+                int y = realToScr((editY) / CELL_SIZE) - 1;
+                int x = (editX) / CELL_SIZE;
+                x = editX > 368 && editX < 392 ? 13 : x;
+                y = editY > 12 && editY < 51 ? 13 : y;
+                x = editX > 337 && editX < 367 ? 12 : x;
+                y = editY > 52 && editY < 79 ? 12 : y;
+                x = editX > 309 && editX < 336 ? 11 : x;
+                y = editY > 80 && editY < 107 ? 11 : y;
+                x = editX > 281 && editX < 308 ? 10 : x;
+                y = editY > 108 && editY < 133 ? 10 : y;
+
                 BoardElement boardElement = new BoardElement(null, null, x, y);
                 if (!isWall(boardElement) && !snake.isBody(boardElement) && !badApple.itsMe(boardElement)) {
                     createApple(x, y);
@@ -169,19 +184,19 @@ public class View extends javax.swing.JPanel {
         walls = new ArrayList<>();
         // Left
         for (int i = 0; i < BoardExt.SIZE; i++) {
-            walls.add(new Wall(0, i));
+            walls.add(new Wall(0, i, String.valueOf(i)));
         }
         // Right
         for (int i = 0; i < BoardExt.SIZE; i++) {
-            walls.add(new Wall(BoardExt.SIZE - 1, i));
+            walls.add(new Wall(BoardExt.SIZE - 1, i, ""));
         }
         // Down
         for (int i = 0; i < BoardExt.SIZE; i++) {
-            walls.add(new Wall(i, BoardExt.SIZE - 1));
+            walls.add(new Wall(i, BoardExt.SIZE - 1, String.valueOf(i)));
         }
         // Up
         for (int i = 0; i < BoardExt.SIZE; i++) {
-            walls.add(new Wall(i, 0));
+            walls.add(new Wall(i, 0, ""));
         }
     }
 
@@ -340,6 +355,7 @@ public class View extends javax.swing.JPanel {
         if (isPaintPath) {
             snake.paintPath(graphics, cellHeight, cellWidth, null);
         }
+//        paintNewApplePlace(graphics, cellHeight, cellWidth);
         badApple.paint(graphics, cellHeight, cellWidth, null);
         paintCenterText(graphics);
         paintScore(graphics);
@@ -361,6 +377,7 @@ public class View extends javax.swing.JPanel {
         if (isPaintPath) {
             snake.paintPath(graphics, cellHeight, cellWidth, null);
         }
+//        paintNewApplePlace(graphics, cellHeight, cellWidth);
         badApple.paint(graphics, cellHeight, cellWidth, board.getAt(badApple.getX(), badApple.getY()));
         paintCenterText(graphics);
         paintScore(graphics);
@@ -371,73 +388,91 @@ public class View extends javax.swing.JPanel {
         }
     }
 
-    private void paintWalls(Graphics g, int cellHeight, int cellWidth, Elements element) {
-        for (BoardElement wall : this.walls) {
-            wall.paint(g, cellHeight, cellWidth, element);
+    private void paintNewApplePlace(Graphics graphics, int cellHeight, int cellWidth) {
+        int x = editX;
+        int y = editY;
+        graphics.setColor(Color.BLACK);
+        graphics.drawRect(x, y, 2, 2);
+
+        Rectangle clipBounds = graphics.getClipBounds();
+        int fontSize = 20;
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        Color tmpColor = graphics.getColor();
+        graphics.setColor(Color.BLACK);
+//        graphics.drawString(x + ", " + y , 0, 200);
+        int yCell = realToScr((editY) / CELL_SIZE) - 1;
+        int xCell = (editX) / CELL_SIZE;
+//        graphics.drawString(xCell + ", " + yCell , 0, 250);
+        graphics.setColor(tmpColor);
+    }
+
+    private void paintWalls(Graphics graphics, int cellHeight, int cellWidth, Elements element) {
+        for (Wall wall : this.walls) {
+            wall.paint(graphics, cellHeight, cellWidth, element);
         }
     }
 
-    private void paintScore(Graphics g) {
-        Color tmpColor = g.getColor();
+    private void paintScore(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
         int fontSize = 14;
-        g.setFont(new Font("Arial", Font.BOLD, fontSize));
-        g.setColor(Color.WHITE);
-        g.drawString("Score: " + score, 10, 12);
-        g.setColor(tmpColor);
+        graphics.setFont(new Font("Arial", Font.BOLD, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("Score: " + score, 10, 12);
+        graphics.setColor(tmpColor);
     }
 
-    private void paintDelay(Graphics g) {
-        Color tmpColor = g.getColor();
+    private void paintDelay(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
         int fontSize = 14;
-        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
-        g.setColor(Color.WHITE);
-        g.drawString("Delay: " + DELAY, 10, 26);
-        g.setColor(tmpColor);
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("Delay: " + DELAY, 10, 26);
+        graphics.setColor(tmpColor);
     }
 
-    private void paintHelp(Graphics g) {
-        Color tmpColor = g.getColor();
+    private void paintHelp(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
         int fontSize = 14;
-        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
-        g.setColor(Color.WHITE);
-        g.drawString("Pause: space  |  Edit mode: e  |  Speed: up/down", 100, 12);
-        g.drawString("Path: p | Graphic: s", 100, 26);
-        g.setColor(tmpColor);
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: up/down", 100, 12);
+        graphics.drawString("Path: p | Graphic: s", 100, 26);
+        graphics.setColor(tmpColor);
     }
 
-    private void paintCenterText(Graphics g) {
+    private void paintCenterText(Graphics graphics) {
         if (textOnCenter == null) {
             return;
         }
-        Rectangle clipBounds = g.getClipBounds();
+        Rectangle clipBounds = graphics.getClipBounds();
         int fontSize = 30;
-        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
-        Color tmpColor = g.getColor();
-        g.setColor(Color.WHITE);
-        g.drawString(textOnCenter, (int) (clipBounds.getWidth() / 2) - textOnCenter.length() / 2 * 20, (int) (clipBounds.getHeight() / 2));
-        g.setColor(tmpColor);
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        Color tmpColor = graphics.getColor();
+        graphics.setColor(Color.WHITE);
+        graphics.drawString(textOnCenter, (int) (clipBounds.getWidth() / 2) - textOnCenter.length() / 2 * 20, (int) (clipBounds.getHeight() / 2));
+        graphics.setColor(tmpColor);
     }
 
-    private void paintPlusScore(Graphics g) {
-        Rectangle clipBounds = g.getClipBounds();
+    private void paintPlusScore(Graphics graphics) {
+        Rectangle clipBounds = graphics.getClipBounds();
         int fontSize = 50;
-        g.setFont(new Font("Arial", Font.BOLD, fontSize));
-        Color tmpColor = g.getColor();
-        g.setColor(Color.RED);
-        g.drawString("+" + snake.size(), (int) (clipBounds.getWidth() / 2), (int) (clipBounds.getHeight() / 2));
-        g.setColor(tmpColor);
+        graphics.setFont(new Font("Arial", Font.BOLD, fontSize));
+        Color tmpColor = graphics.getColor();
+        graphics.setColor(Color.RED);
+        graphics.drawString("+" + snake.size(), (int) (clipBounds.getWidth() / 2), (int) (clipBounds.getHeight() / 2));
+        graphics.setColor(tmpColor);
     }
 
-    private void paintGrid(Graphics g, int cellHeight, int cellWidth) {
+    private void paintGrid(Graphics graphics, int cellHeight, int cellWidth) {
         int x = 0;
         int y = 0;
-        g.setColor(Color.BLACK);
+        graphics.setColor(Color.BLACK);
         for (int i = 0; i < board.size(); i++) {
-            g.drawLine(0, y, getWidth(), y);
+            graphics.drawLine(0, y, getWidth(), y);
             y += cellHeight;
         }
         for (int i = 0; i < board.size(); i++) {
-            g.drawLine(x, 0, x, getHeight());
+            graphics.drawLine(x, 0, x, getHeight());
             x += cellWidth;
         }
     }
