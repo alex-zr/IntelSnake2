@@ -31,10 +31,11 @@ public class View extends javax.swing.JPanel {
     public static final int SNAKE_LENGTH = 2;
     public static final int DECREASE_LENGTH = 10;
     public static int DELAY = 400;
-    public static final boolean MUTE_SOUND = true;
 
-    public boolean editMode = false;
-    public boolean isPaintSprites = true;
+    public static boolean muteSound = true;
+    public boolean isEditMode = false;
+    public boolean isPaintSprites = false;
+    public boolean isPaintPath = true;
     private BoardExt board;
     private List<Wall> walls = new ArrayList<>();
     private Apple apple;
@@ -46,6 +47,8 @@ public class View extends javax.swing.JPanel {
     private int score;
     private boolean isPause;
     private PlaySound playSound;
+    private int backFramePosition;
+    private int framePosition;
 
     public View(JFrame main, YourSolver solver) {
         this.solver = solver;
@@ -54,52 +57,61 @@ public class View extends javax.swing.JPanel {
         createApple();
         createBadApple();
         snake = new Snake(SNAKE_LENGTH, this.walls, this.apple, this.badApple, this.board);
-        if (!MUTE_SOUND) {
-            new PlayBackground().start();
+        //new PlayBackground().start();
+        if (PlayBackground.clip != null) {
+            if (!muteSound) {
+                startSound();
+            } else {
+                stopSound();
+            }
         }
         main.addKeyListener(new KeyAdapter() {
-            private int backFramePosition;
-            private int framePosition;
 
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                     isPause = !isPause;
-                    if (!MUTE_SOUND) {
+                    if (!muteSound) {
                         if (PlayBackground.clip == null) {
                             return;
                         }
                         if (isPause) {
-                            backFramePosition = PlayBackground.clip.getFramePosition();
-                            PlayBackground.clip.stop();
-                            if (PlaySound.clip != null) {
-                                framePosition = PlaySound.clip.getFramePosition();
-                                PlaySound.clip.stop();
-                            }
+                            stopSound();
                         } else {
-                            PlayBackground.clip.setFramePosition(backFramePosition);
-                            PlayBackground.clip.start();
-                            if (PlaySound.clip != null) {
-                                PlaySound.clip.setFramePosition(framePosition);
-                                PlaySound.clip.start();
-                            }
+                            startSound();
                         }
                     }
                 }
                 if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    DELAY += 50;
-                }
-                if (e.getKeyCode() == KeyEvent.VK_DOWN && DELAY >= 50) {
                     DELAY -= 50;
                 }
+                if (e.getKeyCode() == KeyEvent.VK_DOWN && DELAY >= 50) {
+                    DELAY += 50;
+                }
                 if (e.getKeyCode() == KeyEvent.VK_E) {
-                    editMode = !editMode;
-                    isPause = editMode;
-                    if (!editMode) {
+                    isEditMode = !isEditMode;
+                    isPause = isEditMode;
+                    if (!isEditMode) {
                         createApple();
                     }
                 }
+                if (e.getKeyCode() == KeyEvent.VK_S) {
+                    isPaintSprites = !isPaintSprites;
+                }
+                if (e.getKeyCode() == KeyEvent.VK_P) {
+                    isPaintPath = !isPaintPath;
+                }
+                if (e.getKeyCode() == KeyEvent.VK_M) {
+                    muteSound = !muteSound;
+                    if (!muteSound) {
+                        startSound();
+                    } else {
+                        stopSound();
+                    }
+                }
             }
+
+
         });
         main.addMouseListener(new MouseAdapter() {
             @Override
@@ -133,6 +145,24 @@ public class View extends javax.swing.JPanel {
                 checkSnakeDead();
             }
         }).start();
+    }
+
+    private void startSound() {
+        PlayBackground.clip.setFramePosition(backFramePosition);
+        PlayBackground.clip.start();
+        if (PlaySound.clip != null) {
+            PlaySound.clip.setFramePosition(framePosition);
+            PlaySound.clip.start();
+        }
+    }
+
+    private void stopSound() {
+        backFramePosition = PlayBackground.clip.getFramePosition();
+        PlayBackground.clip.stop();
+        if (PlaySound.clip != null) {
+            framePosition = PlaySound.clip.getFramePosition();
+            PlaySound.clip.stop();
+        }
     }
 
     private void createWalls() {
@@ -174,7 +204,7 @@ public class View extends javax.swing.JPanel {
     private BoardElement checkSnakeEatApple() {
         BoardElement eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
-            if (editMode) {
+            if (isEditMode) {
                 isPause = true;
             } else {
                 createApple();
@@ -182,7 +212,7 @@ public class View extends javax.swing.JPanel {
             increaseScore(this.snake.size());
             snake.grow();
             // For disable event sound
-            if (!MUTE_SOUND) {
+            if (!muteSound) {
                 playSound = new PlaySound();
                 playSound.start();
             }
@@ -200,7 +230,7 @@ public class View extends javax.swing.JPanel {
             }
             snake.decrease(DECREASE_LENGTH);
             // For disable event sound
-            if (!MUTE_SOUND) {
+            if (!muteSound) {
                 playSound = new PlaySound();
                 playSound.start();
             }
@@ -307,7 +337,9 @@ public class View extends javax.swing.JPanel {
         paintWalls(graphics, cellHeight, cellWidth, null);
         snake.paint(graphics, cellHeight, cellWidth, false);
         apple.paint(graphics, cellHeight, cellWidth, null);
-        snake.paintPath(graphics, cellHeight, cellWidth, null);
+        if (isPaintPath) {
+            snake.paintPath(graphics, cellHeight, cellWidth, null);
+        }
         badApple.paint(graphics, cellHeight, cellWidth, null);
         paintCenterText(graphics);
         paintScore(graphics);
@@ -326,7 +358,9 @@ public class View extends javax.swing.JPanel {
         paintWalls(graphics, cellHeight, cellWidth, Elements.BREAK);
         snake.paint(graphics, cellHeight, cellWidth, true);
         apple.paint(graphics, cellHeight, cellWidth, board.getAt(apple.getX(), apple.getY()));
-        snake.paintPath(graphics, cellHeight, cellWidth, null);
+        if (isPaintPath) {
+            snake.paintPath(graphics, cellHeight, cellWidth, null);
+        }
         badApple.paint(graphics, cellHeight, cellWidth, board.getAt(badApple.getX(), badApple.getY()));
         paintCenterText(graphics);
         paintScore(graphics);
@@ -346,7 +380,7 @@ public class View extends javax.swing.JPanel {
     private void paintScore(Graphics g) {
         Color tmpColor = g.getColor();
         int fontSize = 14;
-        g.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        g.setFont(new Font("Arial", Font.BOLD, fontSize));
         g.setColor(Color.WHITE);
         g.drawString("Score: " + score, 10, 12);
         g.setColor(tmpColor);
@@ -357,7 +391,7 @@ public class View extends javax.swing.JPanel {
         int fontSize = 14;
         g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         g.setColor(Color.WHITE);
-        g.drawString("Delay: " + DELAY, 10, 30);
+        g.drawString("Delay: " + DELAY, 10, 26);
         g.setColor(tmpColor);
     }
 
@@ -366,7 +400,8 @@ public class View extends javax.swing.JPanel {
         int fontSize = 14;
         g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         g.setColor(Color.WHITE);
-        g.drawString("Pause: space  |  Edit mode: e  |  Decrease score: down  |  Increase score: up", 100, 30);
+        g.drawString("Pause: space  |  Edit mode: e  |  Speed: up/down", 100, 12);
+        g.drawString("Path: p | Graphic: s", 100, 26);
         g.setColor(tmpColor);
     }
 
@@ -379,7 +414,7 @@ public class View extends javax.swing.JPanel {
         g.setFont(new Font("Arial", Font.PLAIN, fontSize));
         Color tmpColor = g.getColor();
         g.setColor(Color.WHITE);
-        g.drawString(textOnCenter, (int) (clipBounds.getWidth() / 2) - textOnCenter.length() / 2 * 30, (int) (clipBounds.getHeight() / 2));
+        g.drawString(textOnCenter, (int) (clipBounds.getWidth() / 2) - textOnCenter.length() / 2 * 20, (int) (clipBounds.getHeight() / 2));
         g.setColor(tmpColor);
     }
 

@@ -13,12 +13,14 @@ import java.io.IOException;
  * Date: 11/16/13
  */
 public class PlaySound extends Thread {
-    private static File soundFile = new File("smb_vine.wav");
+    private static File soundFile;
     private static AudioInputStream ais;
     public static Clip clip;
 
     public PlaySound() {
         try {
+            String path = PlaySound.class.getResource("/sound/smb_vine.wav").getPath();
+            soundFile = new File(path);
             ais = AudioSystem.getAudioInputStream(soundFile);
         } catch (UnsupportedAudioFileException e) {
             e.printStackTrace();

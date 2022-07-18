@@ -25,6 +25,7 @@ public class YourSolver implements Solver<Board> {
 
     public YourSolver(Dice dice) {
         this.dice = dice;
+        this.path = new ArrayList<>();
     }
 
     @Override
