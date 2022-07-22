@@ -5,7 +5,6 @@ import com.codenjoy.dojo.services.Dice;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import com.codenjoy.dojo.services.PointImpl;
-import com.codenjoy.dojo.services.RandomDice;
 import jon.com.ua.view.View;
 
 import java.util.ArrayList;
@@ -34,7 +33,23 @@ public class YourSolver implements Solver<Board> {
             return Direction.UP.toString();
         }
 
-        return Direction.RIGHT.toString();
+        Point head = board.getHead();
+        Point target = board.getSnake().size() < REDUCE_SIZE ? board.getApples().get(0) : board.getStones().get(0);
+        this.path = new ArrayList<>();
+        this.path.add(head);
+        this.path.add(target);
+        Direction direction = Stream.of(
+                        new PointImpl(head.getX() - 1, head.getY()),
+                        new PointImpl(head.getX() + 1, head.getY()),
+                        new PointImpl(head.getX(), head.getY() + 1),
+                        new PointImpl(head.getX(), head.getY() - 1)
+                )
+                .filter(p -> !board.getSnake().contains(p))
+                .filter(p -> !board.getWalls().contains(p))
+                .min(Comparator.comparingDouble(target::distance))
+                .map(head::direction)
+                .orElse(Direction.UP);
+        return direction.toString();
     }
 
     public List<Point> getPath() {
@@ -43,7 +58,7 @@ public class YourSolver implements Solver<Board> {
 
     public static void main(String[] args) {
         View.runClient(
-                new YourSolver(new RandomDice()),
+                new YourSolver(null),
                 new Board());
     }
 
