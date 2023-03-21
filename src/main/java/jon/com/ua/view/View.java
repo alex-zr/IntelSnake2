@@ -36,7 +36,7 @@ public class View extends javax.swing.JPanel {
 
     public static boolean muteSound = true;
     public boolean isEditMode = false;
-    public boolean isPaintSprites = false;
+    public boolean isPaintSprites = true;
     public boolean isPaintPath = true;
     private String manualDirection;
     private BoardExt board;
@@ -87,11 +87,18 @@ public class View extends javax.swing.JPanel {
                         }
                     }
                 }
-                if (e.getKeyCode() == KeyEvent.VK_PLUS) {
+                if (DELAY > 50 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
                     DELAY -= 50;
                 }
-                if (e.getKeyCode() == KeyEvent.VK_MINUS && DELAY >= 50) {
+                if (DELAY <= 50 && DELAY != 5 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
+                    DELAY -= 5;
+                }
+
+                if (DELAY >= 50 && e.getKeyCode() == KeyEvent.VK_MINUS) {
                     DELAY += 50;
+                }
+                if (DELAY < 50 && e.getKeyCode() == KeyEvent.VK_MINUS) {
+                    DELAY += 5;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_E) {
                     isEditMode = !isEditMode;
@@ -340,7 +347,7 @@ public class View extends javax.swing.JPanel {
 
         main.setContentPane(view);
         int fieldSize = CELL_SIZE * BoardExt.SIZE;
-        main.setBounds(100, 100, fieldSize - 13, fieldSize - 5);
+        main.setBounds(10, 100, fieldSize - 13, fieldSize - 5);
         main.setVisible(true);
     }
 
