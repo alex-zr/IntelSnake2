@@ -221,14 +221,7 @@ public class View extends javax.swing.JPanel {
 
     private void setSnakeDirection() {
         try {
-            this.solver.getPath().clear();
-            try {
-                Field path = solver.getClass().getField("path");
-                path.setAccessible(true);
-                path.set(this.solver, new ArrayList<>());
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
+            clearPrevPath();
             String directionName = Optional.ofNullable(
                     manualDirection == null ? solver.get((Board) board.clone()) : manualDirection
             ).orElse(Direction.LEFT.toString());
@@ -236,6 +229,16 @@ public class View extends javax.swing.JPanel {
             Direction direction = Direction.valueOf(directionName);
             snake.setDirection(direction);
         } catch (IllegalArgumentException | CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void clearPrevPath() {
+        try {
+            Field path = solver.getClass().getDeclaredField("path");
+            path.setAccessible(true);
+            path.set(this.solver, new ArrayList<>());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
