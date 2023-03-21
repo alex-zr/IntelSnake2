@@ -35,7 +35,6 @@ public class YourSolver implements Solver<Board> {
 
         Point head = board.getHead();
         Point target = board.getSnake().size() < REDUCE_SIZE ? board.getApples().get(0) : board.getStones().get(0);
-        this.path = new ArrayList<>();
         this.path.add(head);
         this.path.add(target);
         Direction direction = Stream.of(

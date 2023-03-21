@@ -12,6 +12,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -220,6 +221,14 @@ public class View extends javax.swing.JPanel {
 
     private void setSnakeDirection() {
         try {
+            this.solver.getPath().clear();
+            try {
+                Field path = solver.getClass().getField("path");
+                path.setAccessible(true);
+                path.set(this.solver, new ArrayList<>());
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
             String directionName = Optional.ofNullable(
                     manualDirection == null ? solver.get((Board) board.clone()) : manualDirection
             ).orElse(Direction.LEFT.toString());
