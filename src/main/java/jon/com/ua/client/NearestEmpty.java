@@ -28,18 +28,7 @@ public class NearestEmpty {
         return direction.toString();
     }
 
-    public static Point getFirstEmpty(Board board, Point point) {
-        return Stream.of(
-                        new PointImpl(point.getX() - 1, point.getY()),
-                        new PointImpl(point.getX() + 1, point.getY()),
-                        new PointImpl(point.getX(), point.getY() + 1),
-                        new PointImpl(point.getX(), point.getY() - 1)
-                )
-                .filter(p -> !board.getSnake().contains(p))
-                .filter(p -> !board.getWalls().contains(p))
-                .findFirst()
-                .orElseThrow();
-    }
+
 
     private static Direction getDirection(Board board, Point head, Point target) {
         Direction direction = Stream.of(
