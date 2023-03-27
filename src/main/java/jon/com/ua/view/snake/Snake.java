@@ -7,6 +7,7 @@ import jon.com.ua.view.Apple;
 import jon.com.ua.view.BadApple;
 import jon.com.ua.view.BoardElement;
 import jon.com.ua.view.BoardExt;
+import jon.com.ua.view.PlaySound;
 import jon.com.ua.view.Wall;
 
 import java.awt.*;
@@ -143,15 +144,34 @@ public class Snake {
         g2d.dispose();
     }
 
-    public void move() {
+    public boolean move() {
         BoardElement lead = heads.peekFirst();
         BoardElement newHead = getNewHead(lead);
         heads.addFirst(newHead);
-        if (!isGrow) {
+        boolean justEat = checkSnakeEatApple() != null;
+        if (!justEat) {
             heads.removeLast();
+        } else {
+            grow();
         }
 
-        isGrow = false;
+        System.out.println("Internal snake size: " + heads.size());
+
+        return justEat;
+    }
+
+    private BoardElement checkSnakeEatApple() {
+        return tryToEatAndGet(this.apple);
+    }
+
+
+    private BoardElement tryToEatAndGet(BoardElement target) {
+        for (BoardElement head : heads) {
+            if (target.getX() == head.getX() && target.getY() == head.getY()) {
+                return target;
+            }
+        }
+        return null;
     }
 
     private BoardElement getNewHead(BoardElement lead) {
@@ -175,8 +195,12 @@ public class Snake {
         }
     }
 
+    public void setGrow(boolean grow) {
+        this.isGrow = grow;
+    }
+
     public void grow() {
-        isGrow = true;
+        this.isGrow = true;
     }
 
     public boolean isGrow() {

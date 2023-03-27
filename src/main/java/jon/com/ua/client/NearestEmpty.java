@@ -13,24 +13,12 @@ public class NearestEmpty {
     private static final int REDUCE_SIZE = 40;
 
     public static String getDirection(Board board, List<Point> path) {
-        Point target = board.getSnake().size() < REDUCE_SIZE ? board.getApples().get(0) : board.getStones().get(0);
-        return getDirection(board, path, target);
-    }
-
-    public static String getDirection(Board board, List<Point> path, Point target) {
         Point head = board.getHead();
-
+        Point target = board.getSnake().size() < REDUCE_SIZE ? board.getApples().get(0) : board.getStones().get(0);
         path = new ArrayList<>();
         path.add(head);
         path.add(target);
 
-        Direction direction = getDirection(board, target, head);
-        return direction.toString();
-    }
-
-
-
-    private static Direction getDirection(Board board, Point head, Point target) {
         Direction direction = Stream.of(
                         new PointImpl(head.getX() - 1, head.getY()),
                         new PointImpl(head.getX() + 1, head.getY()),
@@ -42,7 +30,20 @@ public class NearestEmpty {
                 .min(Comparator.comparingDouble(target::distance))
                 .map(t -> direction(head, t))
                 .orElse(Direction.UP);
-        return direction;
+        return direction.toString();
+    }
+
+    public static Point getFirstEmpty(Board board, Point point) {
+        return Stream.of(
+                        new PointImpl(point.getX() - 1, point.getY()),
+                        new PointImpl(point.getX() + 1, point.getY()),
+                        new PointImpl(point.getX(), point.getY() + 1),
+                        new PointImpl(point.getX(), point.getY() - 1)
+                )
+                .filter(p -> !board.getSnake().contains(p))
+                .filter(p -> !board.getWalls().contains(p))
+                .findFirst()
+                .orElseThrow();
     }
 
     public static Direction direction(Point from, Point to) {

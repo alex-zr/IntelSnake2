@@ -16,11 +16,11 @@ import java.util.stream.Stream;
  * User: your name
  */
 public class YourSolver implements Solver<Board> {
-    public static final int REDUCE_SIZE = 40;
-
     private Dice dice;
     private Board board;
     private List<Point> path;
+    private static int lastSize = 0;
+    private static int moveCounter = 0;
 
     public YourSolver(Dice dice) {
         this.dice = dice;
@@ -33,7 +33,30 @@ public class YourSolver implements Solver<Board> {
             return Direction.UP.toString();
         }
 
-        return Dijkstra.getDirection(board, path);
+        int snakeSize = board.getSnake().size();
+        if (snakeSize == 2) {
+            lastSize = 2;
+            moveCounter = 0;
+        }
+        if (snakeSize < lastSize) {
+            lastSize = snakeSize;
+        }
+        boolean justEat = snakeSize > lastSize;
+        if (justEat) {
+            System.out.println("--- Just eat ---");
+            lastSize = snakeSize;
+            moveCounter = 0;
+        }
+        moveCounter++;
+        boolean loop = snakeSize > Dijkstra.SNAKE_MAX_SIZE && moveCounter > snakeSize * 2;
+        System.out.println("Move counter: " + moveCounter);
+        if (loop) {
+            System.out.println("--- Loop ---");
+        }
+
+//        String direction = Dijkstra.getDirection(board, path, justEat, loop);
+        String direction = NearestEmpty.getDirection(board, path);
+        return direction;
     }
 
     public List<Point> getPath() {

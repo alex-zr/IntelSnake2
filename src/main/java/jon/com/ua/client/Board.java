@@ -3,6 +3,7 @@ package jon.com.ua.client;
 import com.codenjoy.dojo.client.AbstractBoard;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
+import jon.com.ua.view.snake.Snake;
 
 import java.util.Arrays;
 import java.util.List;
@@ -92,15 +93,15 @@ public class Board extends AbstractBoard<Elements> {
     @Override
     public String toString() {
         return String.format("Board:\n%s\n" +
-//            "Apple at: %s\n" +
-//            "Stones at: %s\n" +
-//            "Head at: %s\n" +
+            "Apple at: %s\n" +
+            "Stones at: %s\n" +
+            "Head at: %s\n" +
 //            "Snake at: %s\n" +
             "Current direction: %s",
                 boardAsString(),
-//                getApples(),
-//                getStones(),
-//                getHead(),
+                getApples(),
+                getStones(),
+                getHead(),
 //                getSnake(),
                 getSnakeDirection());
     }

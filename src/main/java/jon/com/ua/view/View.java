@@ -164,21 +164,39 @@ public class View extends javax.swing.JPanel {
                 if (isPause) {
                     continue;
                 }
-                this.board.render(snake, apple, badApple, walls);
+                this.board.render(this.snake, this.apple, this.badApple, this.walls);
                 System.out.println(this.board);
                 setSnakeDirection();
                 setSnakePathToTarget();
+                boolean eated = snake.move();
+                handleEatedApple(eated);
+//                checkSnakeEatApple();
+                checkSnakeEatBadApple();
                 repaint();
                 View.this.sleep(DELAY);
-                snake.move();
-                checkSnakeEatApple();
-                checkSnakeEatBadApple();
                 if (snake.isBittenItselfOrWall()) {
                     gameOver();
                 }
                 checkSnakeDead();
             }
         }).start();
+    }
+
+    private void handleEatedApple(boolean eated) {
+        if (eated) {
+            if (isEditMode) {
+                isPause = true;
+            } else {
+                createApple();
+            }
+            increaseScore(this.snake.size());
+
+            // For disable event sound
+            if (!muteSound) {
+                playSound = new PlaySound();
+                playSound.start();
+            }
+        }
     }
 
     private void startSound() {
@@ -247,7 +265,7 @@ public class View extends javax.swing.JPanel {
         snake.setPath(solver.getPath());
     }
 
-    private BoardElement checkSnakeEatApple() {
+/*    private BoardElement checkSnakeEatApple() {
         BoardElement eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
             if (isEditMode) {
@@ -263,8 +281,8 @@ public class View extends javax.swing.JPanel {
                 playSound.start();
             }
         }
-        return null;
-    }
+        return eatedApple;
+    }*/
 
     private BoardElement checkSnakeEatBadApple() {
         BoardElement eatBadApple = tryToEatAndGet(this.badApple);
@@ -298,15 +316,20 @@ public class View extends javax.swing.JPanel {
     }
 
     private void createApple(int x, int y) {
-        apple = new Apple(x, y);
+        this.apple = new Apple(x, y);
     }
 
     private void createApple() {
         do {
             int rndX = rnd.nextInt(board.size());
             int rndY = rnd.nextInt(board.size());
-            apple = new Apple(rndX, rndY);
-        } while ((snake != null && snake.isBody(apple)) || apple.itsMe(badApple) || isWall(apple));
+            if (this.apple == null) {
+                this.apple = new Apple(rndX, rndY);
+            }
+            this.apple.setX(rndX);
+            this.apple.setY(rndY);
+//            this.apple = new Apple(rndX, rndY);
+        } while ((snake != null && snake.isBody(this.apple)) || this.apple.itsMe(badApple) || isWall(this.apple));
     }
 
     private void createBadApple() {
@@ -359,7 +382,7 @@ public class View extends javax.swing.JPanel {
 
         main.setContentPane(view);
         int fieldSize = CELL_SIZE * BoardExt.SIZE;
-        main.setBounds(10, 100, fieldSize - 13, fieldSize - 5);
+        main.setBounds(10, 10, fieldSize - 13, fieldSize - 5);
         main.setVisible(true);
     }
 
@@ -395,6 +418,7 @@ public class View extends javax.swing.JPanel {
         paintHelp(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
+            snake.setGrow(false);
         }
     }
 
@@ -417,10 +441,11 @@ public class View extends javax.swing.JPanel {
         paintHelp(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
+            snake.setGrow(false);
         }
     }
 
-    private void paintNewApplePlace(Graphics graphics, int cellHeight, int cellWidth) {
+/*    private void paintNewApplePlace(Graphics graphics, int cellHeight, int cellWidth) {
         int x = editX;
         int y = editY;
         graphics.setColor(Color.BLACK);
@@ -436,7 +461,7 @@ public class View extends javax.swing.JPanel {
         int xCell = (editX) / CELL_SIZE;
 //        graphics.drawString(xCell + ", " + yCell , 0, 250);
         graphics.setColor(tmpColor);
-    }
+    }*/
 
     private void paintWalls(Graphics graphics, int cellHeight, int cellWidth, Elements element) {
         for (Wall wall : this.walls) {
@@ -473,7 +498,7 @@ public class View extends javax.swing.JPanel {
     }
 
     private void paintCenterText(Graphics graphics) {
-        if (textOnCenter == null) {
+        if (this.textOnCenter == null) {
             return;
         }
         Rectangle clipBounds = graphics.getClipBounds();
