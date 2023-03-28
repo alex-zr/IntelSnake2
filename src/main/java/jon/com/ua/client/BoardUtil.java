@@ -18,7 +18,7 @@ public class BoardUtil {
         return board.get(Elements.TAIL_END_DOWN, Elements.TAIL_END_UP, Elements.TAIL_END_LEFT, Elements.TAIL_END_RIGHT).get(0);
     }
 
-    public static Point getFirstEmpty(Board board, Point point) {
+/*    public static Point getFirstEmpty(Board board, Point point) {
         return Stream.of(
                         new PointImpl(point.getX() - 1, point.getY()),
                         new PointImpl(point.getX() + 1, point.getY()),
@@ -29,7 +29,7 @@ public class BoardUtil {
                 .filter(p -> !board.getWalls().contains(p))
                 .findFirst()
                 .orElse((PointImpl) point);
-    }
+    }*/
 
     public static Point getAnyEmptyDesirableWithoutStone(Board board, Point point) {
         Point stone = board.getStones().get(0);
@@ -52,19 +52,9 @@ public class BoardUtil {
                     .findAny()
                     .orElse((PointImpl) point);
         }
-/*        return Stream.of(
-                        new PointImpl(point.getX() - 1, point.getY()),
-                        new PointImpl(point.getX() + 1, point.getY()),
-                        new PointImpl(point.getX(), point.getY() + 1),
-                        new PointImpl(point.getX(), point.getY() - 1)
-                )
-                .filter(p -> !board.getSnake().contains(p))
-                .filter(p -> !board.getWalls().contains(p))
-                .findAny()
-                .orElse((PointImpl) point);*/
     }
 
-    public static Point getNearestEmpty(Board board, Point source, Point dest) {
+/*    public static Point getNearestEmpty(Board board, Point source, Point dest) {
         return Stream.of(
                         new PointImpl(source.getX() - 1, source.getY()),
                         new PointImpl(source.getX() + 1, source.getY()),
@@ -75,7 +65,7 @@ public class BoardUtil {
                 .filter(p -> !board.getWalls().contains(p))
                 .min(Comparator.comparingDouble(dest::distance))
                 .orElse((PointImpl) source);
-    }
+    }*/
 
     public static Direction direction(Point from, Point to) {
         if (from == null || to == null) {
@@ -114,44 +104,6 @@ public class BoardUtil {
         }
 
         return verticesCounter;
-    }
-
-    public static List<Point> findPathBfs(Point startPoint,Point endPoint, Dijkstra.Vertex[][] vertices) {
-        Dijkstra.Vertex start = vertices[startPoint.getX()][startPoint.getY()];
-        Dijkstra.Vertex end = vertices[endPoint.getX()][endPoint.getY()];
-        if (start == null) {
-            return new ArrayList<>();
-        }
-
-        Queue<Dijkstra.Vertex> queue = new LinkedList<>();
-        queue.add(start);
-        clearVisiting(vertices);
-        start.visited = true;
-
-        Dijkstra.Vertex current;
-
-        while (!queue.isEmpty()) {
-            current = queue.poll();
-
-            for (Dijkstra.Edge edge : current.edges) {
-                if (!edge.target().visited) {
-                    edge.target().visited = true;
-                    queue.add(edge.target());
-                    edge.target().previous = current;
-                }
-            }
-        }
-
-        return getShortestPathTo(end);
-    }
-
-    private static List<Point> getShortestPathTo(Dijkstra.Vertex target) {
-        List<Point> path = new ArrayList<>();
-        for (Dijkstra.Vertex vertex = target; vertex != null; vertex = vertex.previous) {
-            path.add(vertex.point);
-        }
-        Collections.reverse(path);
-        return path;
     }
 
     public static void clearVisiting(Dijkstra.Vertex[][] vertices) {

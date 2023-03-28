@@ -59,12 +59,6 @@ public class YourSolver implements Solver<Board> {
             moveCounter = 0;
         }
 
-        boolean loop = snakeSize > Dijkstra.SNAKE_MAX_SIZE && moveCounter > snakeSize * 2.5;
-
-        if (loop) {
-            System.out.println("--- Loop ---");
-        }
-
         String direction = Dijkstra.getDirection(board, path, justEat, moveCounter);
 //        String direction = NearestEmpty.getDirection(board, path);
         return direction;
