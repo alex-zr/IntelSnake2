@@ -2,6 +2,7 @@ package jon.com.ua.view.snake;
 
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
+import jon.com.ua.client.BoardUtil;
 import jon.com.ua.client.Elements;
 import jon.com.ua.view.Apple;
 import jon.com.ua.view.BadApple;
@@ -90,19 +91,19 @@ public class Snake {
     public void paint(Graphics g, int cellHeight, int cellWidth, boolean isPaintSprites) {
         for (int i = 0; i < heads.size(); i++) {
             BoardElement head = heads.get(i);
-            if ((isHead(head))) {
+/*            if ((isTail(head))) {
                 if (isPaintSprites) {
-                    head.paintSprite(g, cellHeight, cellWidth, getHeadElement());
+                    head.paintSprite(g, cellHeight, cellWidth, getTailLastElement());
                 } else {
                     head.paintColor(g, cellHeight, cellWidth, Color.BLUE);
                 }
-            } else {
+            } else {*/
                 if (isPaintSprites) {
                     head.paintSprite(g, cellHeight, cellWidth, board.getAt(head.getX(), head.getY()));
                 } else {
                     head.paintColor(g, cellHeight, cellWidth, bodyColor);
                 }
-            }
+            //}
         }
     }
 
@@ -231,14 +232,14 @@ public class Snake {
         return false;
     }
 
-    public boolean isBodyWithoutHead(BoardElement boardElement) {
+/*    public boolean isBodyWithoutHead(BoardElement boardElement) {
         for (BoardElement head : heads) {
             if (!isHead(boardElement) && isCollision(head, boardElement)) {
                 return true;
             }
         }
         return false;
-    }
+    }*/
 
     public boolean isBodyWithoutHeadAndTail(BoardElement boardElement) {
         for (BoardElement head : heads) {
@@ -252,6 +253,12 @@ public class Snake {
     public boolean isHead(BoardElement boardElement) {
         BoardElement lead = heads.getFirst();
         return isCollision(lead, boardElement);
+    }
+
+    public boolean isTail(BoardElement boardElement) {
+//        Elements tail = getTailLastElement();
+        Point tail = BoardUtil.getTail(board);
+        return boardElement.itsMe(new BoardElement(Color.WHITE, "", tail.getX(), tail.getY()));
     }
 
     public void decrease(int length) {

@@ -5,6 +5,7 @@ import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
 import jon.com.ua.view.snake.Snake;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class Board extends AbstractBoard<Elements> {
     public List<Point> getSnake() {
         Point head = getHead();
         if (head == null) {
-            return Arrays.asList();
+            return new ArrayList<>();
         }
         List<Point> result = get(
                 Elements.TAIL_END_DOWN,

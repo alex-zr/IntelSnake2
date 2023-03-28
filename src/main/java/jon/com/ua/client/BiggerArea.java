@@ -76,10 +76,10 @@ public class BiggerArea {
                 .peek(v -> v.edges.removeIf(e -> e.target() == head))
 //                .max(Comparator.comparingInt(v -> BiggerArea.calcVertices(v, vertices)))
                 .max((v1, v2) -> {
-                    if (BiggerArea.calcVertices(v1.point, vertices) == BiggerArea.calcVertices(v2.point, vertices)) {
+                    if (BoardUtil.calcVertices(v1.point, vertices) == BoardUtil.calcVertices(v2.point, vertices)) {
                         return Double.compare(tailPoint.distance(v1.point), tailPoint.distance(v2.point));
                     }
-                    if (BiggerArea.calcVertices(v1.point, vertices) > BiggerArea.calcVertices(v2.point, vertices)) {
+                    if (BoardUtil.calcVertices(v1.point, vertices) > BoardUtil.calcVertices(v2.point, vertices)) {
                         return 1;
                     }
                     return -1;
@@ -108,24 +108,15 @@ public class BiggerArea {
                 .filter(v -> !board.getSnake().contains(v.point))
                 .filter(v -> !board.getWalls().contains(v.point))
                 .toList();
-        Dijkstra.Vertex maxVertex = directions.stream().max(Comparator.comparingDouble(v -> BiggerArea.calcVertices(v.point, vertices))).orElse(headVertex);
-        Dijkstra.Vertex minVertex = directions.stream().min(Comparator.comparingDouble(v -> BiggerArea.calcVertices(v.point, vertices))).orElse(headVertex);
-        int maxArea = BiggerArea.calcVertices(maxVertex.point, vertices);
-        int minArea = BiggerArea.calcVertices(minVertex.point, vertices);
+        Dijkstra.Vertex maxVertex = directions.stream().max(Comparator.comparingDouble(v -> BoardUtil.calcVertices(v.point, vertices))).orElse(headVertex);
+        Dijkstra.Vertex minVertex = directions.stream().min(Comparator.comparingDouble(v -> BoardUtil.calcVertices(v.point, vertices))).orElse(headVertex);
+        int maxArea = BoardUtil.calcVertices(maxVertex.point, vertices);
+        int minArea = BoardUtil.calcVertices(minVertex.point, vertices);
         System.out.printf("Max: %d, Min: %d\n", maxArea, minArea);
         return maxArea > minArea * 1.5;
     }
 
-    public static void clearVisiting(Dijkstra.Vertex[][] vertices) {
-        for (Dijkstra.Vertex[] line : vertices) {
-            for (Dijkstra.Vertex vertex : line) {
-                if (vertex != null) {
-                    vertex.visited = false;
-                }
-            }
-        }
 
-    }
 
     private static Direction direction(Point from, Point to) {
         return Direction.getValues().stream()
@@ -134,32 +125,5 @@ public class BiggerArea {
                 .orElse(null);
     }
 
-    public static int calcVertices(Point startPoint, Dijkstra.Vertex[][] vertices) {
-        Dijkstra.Vertex start = vertices[startPoint.getX()][startPoint.getY()];
-        if (start == null) {
-            return 0;
-        }
 
-        Queue<Dijkstra.Vertex> queue = new LinkedList<>();
-        queue.add(start);
-        clearVisiting(vertices);
-        start.visited = true;
-        int verticesCounter = 0;
-
-        Dijkstra.Vertex current;
-
-        while (!queue.isEmpty()) {
-            current = queue.poll();
-            verticesCounter++;
-
-            for (Dijkstra.Edge edge : current.edges) {
-                if (!edge.target().visited) {
-                    edge.target().visited = true;
-                    queue.add(edge.target());
-                }
-            }
-        }
-
-        return verticesCounter;
-    }
 }

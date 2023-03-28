@@ -28,7 +28,29 @@ public class NearestEmpty {
                 .filter(p -> !board.getSnake().contains(p))
                 .filter(p -> !board.getWalls().contains(p))
                 .min(Comparator.comparingDouble(target::distance))
-                .map(t -> direction(head, t))
+                .map(t -> BoardUtil.direction(head, t))
+                .orElse(Direction.UP);
+        return direction.toString();
+    }
+
+    public static String getLongDirection(Board board, Point head, Point target, List<Point> path) {
+        path.add(head);
+        path.add(target);
+
+        Direction direction = Stream.of(
+                        new PointImpl(head.getX() - 1, head.getY()),
+                        new PointImpl(head.getX() + 1, head.getY()),
+                        new PointImpl(head.getX(), head.getY() + 1),
+                        new PointImpl(head.getX(), head.getY() - 1)
+                )
+                .filter(p -> !board.getSnake().contains(p))
+                .filter(p -> !board.getWalls().contains(p))
+                .max((p1, p2) -> {
+                    List<Point> pathToTail1 = BoardUtil.getPathToTailWithoutHead(board, false, p1);
+                    List<Point> pathToTail2 = BoardUtil.getPathToTailWithoutHead(board, false, p2);
+                    return Integer.compare(pathToTail1.size(), pathToTail2.size());
+                })
+                .map(t -> BoardUtil.direction(head, t))
                 .orElse(Direction.UP);
         return direction.toString();
     }
@@ -46,10 +68,4 @@ public class NearestEmpty {
                 .orElseThrow();
     }
 
-    public static Direction direction(Point from, Point to) {
-        return Direction.getValues().stream()
-                .filter((direction) -> direction.change(from).itsMe(to))
-                .findFirst()
-                .orElse(null);
-    }
 }

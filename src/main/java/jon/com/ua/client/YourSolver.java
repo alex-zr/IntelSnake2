@@ -48,14 +48,14 @@ public class YourSolver implements Solver<Board> {
             moveCounter = 0;
         }
         moveCounter++;
-        boolean loop = snakeSize > Dijkstra.SNAKE_MAX_SIZE && moveCounter > snakeSize * 2;
+        boolean loop = snakeSize > Dijkstra.SNAKE_MAX_SIZE && moveCounter > snakeSize * 2.5;
         System.out.println("Move counter: " + moveCounter);
         if (loop) {
             System.out.println("--- Loop ---");
         }
 
-//        String direction = Dijkstra.getDirection(board, path, justEat, loop);
-        String direction = NearestEmpty.getDirection(board, path);
+        String direction = Dijkstra.getDirection(board, path, justEat, moveCounter);
+//        String direction = NearestEmpty.getDirection(board, path);
         return direction;
     }
 

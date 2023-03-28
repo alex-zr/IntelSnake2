@@ -91,15 +91,21 @@ public class View extends javax.swing.JPanel {
                 if (DELAY > 50 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
                     DELAY -= 50;
                 }
-                if (DELAY <= 50 && DELAY != 5 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
+                if (DELAY <= 50 && DELAY > 5 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
                     DELAY -= 5;
+                }
+                if (DELAY < 6 && DELAY != 1 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
+                    DELAY -= 1;
                 }
 
                 if (DELAY >= 50 && e.getKeyCode() == KeyEvent.VK_MINUS) {
                     DELAY += 50;
                 }
-                if (DELAY < 50 && e.getKeyCode() == KeyEvent.VK_MINUS) {
+                if (DELAY < 50 && DELAY >= 5 && e.getKeyCode() == KeyEvent.VK_MINUS) {
                     DELAY += 5;
+                }
+                if (DELAY < 5 && e.getKeyCode() == KeyEvent.VK_MINUS) {
+                    DELAY += 1;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_E) {
                     isEditMode = !isEditMode;
@@ -164,16 +170,18 @@ public class View extends javax.swing.JPanel {
                 if (isPause) {
                     continue;
                 }
-                this.board.render(this.snake, this.apple, this.badApple, this.walls);
-                System.out.println(this.board);
+
+
                 setSnakeDirection();
                 setSnakePathToTarget();
                 boolean eated = snake.move();
                 handleEatedApple(eated);
 //                checkSnakeEatApple();
                 checkSnakeEatBadApple();
-                repaint();
                 View.this.sleep(DELAY);
+                repaint();
+                this.board.render(this.snake, this.apple, this.badApple, this.walls);
+                System.out.println(this.board);
                 if (snake.isBittenItselfOrWall()) {
                     gameOver();
                 }
@@ -392,10 +400,12 @@ public class View extends javax.swing.JPanel {
 
     @Override
     public void paintComponent(Graphics graphics) {
-        if (isPaintSprites) {
-            paintSprites(graphics);
-        } else {
-            paintSimple(graphics);
+        synchronized (View.class) {
+            if (isPaintSprites) {
+                paintSprites(graphics);
+            } else {
+                paintSimple(graphics);
+            }
         }
     }
 
@@ -416,6 +426,7 @@ public class View extends javax.swing.JPanel {
         paintScore(graphics);
         paintDelay(graphics);
         paintHelp(graphics);
+        paintSize(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
             snake.setGrow(false);
@@ -428,21 +439,24 @@ public class View extends javax.swing.JPanel {
         clearScreen(graphics, Elements.NONE);
 //        paintGrid(graphics, cellHeight, cellWidth);
         paintWalls(graphics, cellHeight, cellWidth, Elements.BREAK);
-        snake.paint(graphics, cellHeight, cellWidth, true);
+
         apple.paint(graphics, cellHeight, cellWidth, board.getAt(apple.getX(), apple.getY()));
         if (isPaintPath) {
             snake.paintPath(graphics, cellHeight, cellWidth, null);
         }
 //        paintNewApplePlace(graphics, cellHeight, cellWidth);
         badApple.paint(graphics, cellHeight, cellWidth, board.getAt(badApple.getX(), badApple.getY()));
-        paintCenterText(graphics);
         paintScore(graphics);
         paintDelay(graphics);
         paintHelp(graphics);
+        paintSize(graphics);
+        snake.paint(graphics, cellHeight, cellWidth, true);
+        paintCenterText(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
             snake.setGrow(false);
         }
+
     }
 
 /*    private void paintNewApplePlace(Graphics graphics, int cellHeight, int cellWidth) {
@@ -487,13 +501,22 @@ public class View extends javax.swing.JPanel {
         graphics.setColor(tmpColor);
     }
 
+    private void paintSize(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
+        int fontSize = 14;
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("S:" + snake.size(), 80, 26);
+        graphics.setColor(tmpColor);
+    }
+
     private void paintHelp(Graphics graphics) {
         Color tmpColor = graphics.getColor();
         int fontSize = 14;
         graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
         graphics.setColor(Color.WHITE);
-        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: +/-", 100, 12);
-        graphics.drawString("Path: p | Graphic: s | Control: arrows | Apple: click", 100, 26);
+        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: +/-", 120, 12);
+        graphics.drawString("Path: p | Graph: s | Control: arrows | Apple: click", 120, 26);
         graphics.setColor(tmpColor);
     }
 
