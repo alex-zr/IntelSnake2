@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class BoardUtil {
@@ -31,7 +32,7 @@ public class BoardUtil {
                 .orElse((PointImpl) point);
     }*/
 
-    public static Point getAnyEmptyDesirableWithoutStone(Board board, Point point) {
+    public static Point getAnyEmptyDesirableWithoutStone(Board board, Point point, boolean loop) {
         Point stone = board.getStones().get(0);
         List<PointImpl> availablePoints = Stream.of(
                         new PointImpl(point.getX() - 1, point.getY()),
@@ -41,8 +42,10 @@ public class BoardUtil {
                 )
                 .filter(p -> !board.getSnake().contains(p))
                 .filter(p -> !board.getWalls().contains(p))
-                .toList();
-        if (availablePoints.size() > 1) {
+                .collect(Collectors.toList());
+        //availablePoints = new ArrayList<>(availablePoints);
+        Collections.shuffle(availablePoints);
+        if (!loop && availablePoints.size() > 1) {
             return availablePoints.stream()
                     .filter(p -> !stone.itsMe(p))
                     .findAny()
@@ -162,16 +165,20 @@ public class BoardUtil {
         }
     }
 
-    public static List<Point> getPathToTail(Board board, boolean justEat, Point head) {
+    public static List<Point> getPathToTail(Board board, boolean justEat, Point head, int moveCounter) {
         // TODO check if withStone needed
         boolean withStone = board.getSnake().size() > 10;
         Dijkstra.Vertex[][] verticesWithHeadTailStone = BoardUtil.createGraph(board, true, true, withStone);
         Dijkstra.Vertex[][] verticesWithHeadTail = BoardUtil.createGraph(board, true, true, false);
-        List<Point> pathToTailAvoidStone = getPathToTail(board, justEat, verticesWithHeadTail, head);
+        List<Point> pathToTailAvoidStone = getPathToTail(board, justEat, verticesWithHeadTail, head, false);
+        List<Point> pathToTailWithStone = getPathToTail(board, justEat, verticesWithHeadTailStone, head, true);
+        if (moveCounter > board.getSnake().size() * 1.5) {
+            return pathToTailWithStone;
+        }
         if (pathToTailAvoidStone.size() > 1) {
             return pathToTailAvoidStone;
         } else {
-            return getPathToTail(board, justEat, verticesWithHeadTailStone, head);
+            return pathToTailWithStone;
         }
     }
 
@@ -180,17 +187,17 @@ public class BoardUtil {
         boolean withStone = board.getSnake().size() > 10;
         Dijkstra.Vertex[][] verticesWithHeadTailStone = BoardUtil.createGraph(board, false, true, withStone);
         Dijkstra.Vertex[][] verticesWithHeadTail = BoardUtil.createGraph(board, false, true, false);
-        List<Point> pathToTail = getPathToTail(board, justEat, verticesWithHeadTail, head);
+        List<Point> pathToTail = getPathToTail(board, justEat, verticesWithHeadTail, head, false);
         if (pathToTail.size() > 1) {
             return pathToTail;
         } else {
-            return getPathToTail(board, justEat, verticesWithHeadTailStone, head);
+            return getPathToTail(board, justEat, verticesWithHeadTailStone, head, false);
         }
     }
 
-    private static List<Point> getPathToTail(Board board, boolean justEat, Dijkstra.Vertex[][] verticesWithHeadTail, Point head) {
+    private static List<Point> getPathToTail(Board board, boolean justEat, Dijkstra.Vertex[][] verticesWithHeadTail, Point head, boolean loop) {
         Point tail = BoardUtil.getTail(board);
-        tail = BoardUtil.getAnyEmptyDesirableWithoutStone(board, tail);
+        tail = BoardUtil.getAnyEmptyDesirableWithoutStone(board, tail, loop);
         //tail = justEat ? BoardUtil.getNearestEmpty(board, tail, head) : tail;
         Dijkstra.Vertex headVertex = verticesWithHeadTail[head.getX()][head.getY()];
         Dijkstra.Vertex tailVertex = verticesWithHeadTail[tail.getX()][tail.getY()];

@@ -9,6 +9,7 @@ import jon.com.ua.view.BadApple;
 import jon.com.ua.view.BoardElement;
 import jon.com.ua.view.BoardExt;
 import jon.com.ua.view.PlaySound;
+import jon.com.ua.view.View;
 import jon.com.ua.view.Wall;
 
 import java.awt.*;
@@ -149,6 +150,7 @@ public class Snake {
         BoardElement lead = heads.peekFirst();
         BoardElement newHead = getNewHead(lead);
         heads.addFirst(newHead);
+        View.moveCounter++;
         boolean justEat = checkSnakeEatApple() != null;
         if (!justEat) {
             heads.removeLast();

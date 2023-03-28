@@ -87,7 +87,9 @@ public class Dijkstra {
         Vertex[][] verticesWithoutHeadTailWithStone = BoardUtil.createGraph(board, false, false, true);
         Vertex[][] verticesWithTailStone = BoardUtil.createGraph(board, false, true, true);
         Vertex[][] verticesWithTail = BoardUtil.createGraph(board, false, true, false);
-        boolean isTailNearApple = isPointsNear(board, apple, tail, verticesWithTail);
+        boolean isTailNearApple = loop
+                ? isPointsNear(board, apple, tail, verticesWithTailStone)
+                : isPointsNear(board, apple, tail, verticesWithTail);
         boolean isTailNearStone = isPointsNear(board, stone, tail, verticesWithTailStone);
         Vertex headVertex = verticesWithHead[head.getX()][head.getY()];
         Vertex appleVertex = verticesWithHead[apple.getX()][apple.getY()];
@@ -96,7 +98,7 @@ public class Dijkstra {
         BoardUtil.computePaths(headVertex, board);
         List<Point> shortestPathToApple = getShortestPathTo(appleVertex);
         List<Point> shortestPathToStone = getShortestPathTo(stoneVertex);
-        List<Point> shortestPathToTail = BoardUtil.getPathToTail(board, justEat, head);
+        List<Point> shortestPathToTail = BoardUtil.getPathToTail(board, justEat, head, moveCounter);
         int appleArea = BoardUtil.calcVertices(apple, verticesWithoutHeadTailWithStone);
         BoardUtil.clearVisiting(verticesWithHead);
         int stoneArea = BoardUtil.calcVertices(stone, verticesWithoutHeadTailWithStone);
@@ -145,14 +147,14 @@ public class Dijkstra {
             path.addAll(shortestPathToStone);
             System.out.println("Stone direction: " + stoneDirection);
             return stoneDirection;
-        } else if ((tailIsAvailable && !loop/*&& (!loop || moveCounter % 4 == 0)*/)
+        } else if ((tailIsAvailable && (!loop || moveCounter % 4 == 0))
                   //  || (tailIsAvailable && loop && moveCounter % 4 == 0)
                     || (tailIsAvailable && board.countNear(board.getHead(), Elements.NONE) < 2)) {
             path.addAll(shortestPathToTail);
             String tailDirection = direction(head, getFirst(shortestPathToTail));
             System.out.println("Tail direction: " + tailDirection);
             return tailDirection;
-        } else if (snakeSize > SNAKE_KILL_SIZE) {
+        } else if (snakeSize > SNAKE_KILL_SIZE && moveCounter > snakeSize * 4) {
             System.out.printf("Self killing, size: %d > moveCounter: %d\n", snakeSize, moveCounter);
             return Direction.UP.toString();
         } else if (loop) {
