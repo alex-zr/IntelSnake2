@@ -21,6 +21,9 @@ public class YourSolver implements Solver<Board> {
     private List<Point> path;
     private static int lastSize = 0;
     private static int moveCounter = 0;
+    private static int globalMoveCounter = 0;
+    private static double pointsPerMove = 0;
+    private static int score = 0;
 
     public YourSolver(Dice dice) {
         this.dice = dice;
@@ -41,15 +44,23 @@ public class YourSolver implements Solver<Board> {
         if (snakeSize < lastSize) {
             lastSize = snakeSize;
         }
+        moveCounter++;
+        globalMoveCounter++;
+        System.out.println("Move counter: " + moveCounter);
+
         boolean justEat = snakeSize > lastSize;
         if (justEat) {
             System.out.println("--- Just eat ---");
             lastSize = snakeSize;
+            pointsPerMove = ((double) snakeSize / moveCounter);
+            System.out.println("Points per move avg: " + (double)score / globalMoveCounter);
+            score += snakeSize;
+            System.out.println("Points per move: " + (pointsPerMove));
             moveCounter = 0;
         }
-        moveCounter++;
+
         boolean loop = snakeSize > Dijkstra.SNAKE_MAX_SIZE && moveCounter > snakeSize * 2.5;
-        System.out.println("Move counter: " + moveCounter);
+
         if (loop) {
             System.out.println("--- Loop ---");
         }

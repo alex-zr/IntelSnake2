@@ -171,17 +171,16 @@ public class View extends javax.swing.JPanel {
                     continue;
                 }
 
-
                 setSnakeDirection();
                 setSnakePathToTarget();
                 boolean eated = snake.move();
                 handleEatedApple(eated);
 //                checkSnakeEatApple();
                 checkSnakeEatBadApple();
-                View.this.sleep(DELAY);
                 repaint();
                 this.board.render(this.snake, this.apple, this.badApple, this.walls);
                 System.out.println(this.board);
+                View.this.sleep(DELAY);
                 if (snake.isBittenItselfOrWall()) {
                     gameOver();
                 }

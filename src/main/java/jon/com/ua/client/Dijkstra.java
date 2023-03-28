@@ -16,8 +16,8 @@ import java.util.Set;
 //11.58 - (211:61-150, 224:74-150)
 public class Dijkstra {
 
-    public static final int SNAKE_MAX_SIZE = 150; // TODO change 100
-    public static final int SNAKE_HUGE_SIZE = 150; // TODO change 130
+    public static final int SNAKE_MAX_SIZE = 100; // TODO change 100
+    public static final int SNAKE_HUGE_SIZE = 110; // TODO change 110
     public static final int SNAKE_KILL_SIZE = 160;
 
     public static class Vertex implements Comparable<Vertex>, Cloneable {
@@ -81,8 +81,11 @@ public class Dijkstra {
         // TODO камень можно добавлять через создания графа
         addPoint(verticesWithHead, stone);
         Vertex[][] verticesWithoutHeadTailWithStone = BoardUtil.createGraph(board, false, false, true);
-        boolean isTailNearApple = isPointsNear(board, apple, tail);
-        boolean isTailNearStone = isPointsNear(board, stone, tail);
+        Vertex[][] verticesWithoutHeadTail = BoardUtil.createGraph(board, false, false, false);
+        Vertex[][] verticesWithTailStone = BoardUtil.createGraph(board, false, true, true);
+        Vertex[][] verticesWithTail = BoardUtil.createGraph(board, false, true, false);
+        boolean isTailNearApple = isPointsNear(board, apple, tail, verticesWithTail);
+        boolean isTailNearStone = isPointsNear(board, stone, tail, verticesWithTailStone);
 //        addPoint(verticesWithoutHeadTailWithStone, head);
         Point tailEmpty = BoardUtil.getNearestEmpty(board, tail, head);
         Vertex headVertex = verticesWithHead[head.getX()][head.getY()];
@@ -98,6 +101,7 @@ public class Dijkstra {
 //        List<Point> longestPathToTail = BoardUtil.findPathBfs(head, tail, vertices);
 //        System.out.println("Path: " + shortestPathToApple);
         int appleArea = BoardUtil.calcVertices(apple, verticesWithoutHeadTailWithStone);
+        int appleAreaWithoutStone = BoardUtil.calcVertices(apple, verticesWithoutHeadTail);
         BoardUtil.clearVisiting(verticesWithHead);
         int stoneArea = BoardUtil.calcVertices(stone, verticesWithoutHeadTailWithStone);
         String biggerDirection = BiggerArea.getDirection(board, verticesWithHead);
@@ -194,11 +198,11 @@ public class Dijkstra {
         }*/
     }
 
-    private static boolean isPointsNear(Board board, Point point1, Point point2) {
-        Vertex[][] verticesWithTail = BoardUtil.createGraph(board, false, true, true);
+    private static boolean isPointsNear(Board board, Point point1, Point point2, Vertex[][] vertices) {
+
 //        Point tailEmpty = BoardUtil.getFirstEmpty(board, point2);
-        Vertex tailVertex = verticesWithTail[point2.getX()][point2.getY()];
-        Vertex appleVertex = verticesWithTail[point1.getX()][point1.getY()];
+        Vertex tailVertex = vertices[point2.getX()][point2.getY()];
+        Vertex appleVertex = vertices[point1.getX()][point1.getY()];
         BoardUtil.computePaths(appleVertex, board);
         List<Point> shortestPathToApple = getShortestPathWithoutSource(tailVertex);
         return !shortestPathToApple.isEmpty();
