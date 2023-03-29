@@ -162,6 +162,9 @@ public class Dijkstra {
             String tailDirection = direction(head, getFirst(shortestPathToTail));
             System.out.println("Tail direction: " + tailDirection);
             return tailDirection;
+        } else if (snakeSize > SNAKE_KILL_SIZE) {
+            System.out.printf("Self killing, size: %d > moveCounter: %d\n", snakeSize, moveCounter);
+            return Direction.UP.toString();
         } else if (loop) {
             String longestDirection = NearestEmpty.getLongDirection(board, head, tail, path);
             System.out.println("Longest direction: " + longestDirection);

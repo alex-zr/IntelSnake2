@@ -55,6 +55,7 @@ public class View extends javax.swing.JPanel {
     private int framePosition;
     private int editX;
     private int editY;
+    public static volatile int moveCounter;
 
     public View(JFrame main, YourSolver solver) {
         this.solver = solver;
@@ -197,7 +198,7 @@ public class View extends javax.swing.JPanel {
                 createApple();
             }
             increaseScore(this.snake.size());
-
+            moveCounter = 0;
             // For disable event sound
             if (!muteSound) {
                 playSound = new PlaySound();
@@ -425,6 +426,7 @@ public class View extends javax.swing.JPanel {
         paintScore(graphics);
         paintDelay(graphics);
         paintHelp(graphics);
+        paintMove(graphics);
         paintSize(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
@@ -448,6 +450,7 @@ public class View extends javax.swing.JPanel {
         paintScore(graphics);
         paintDelay(graphics);
         paintHelp(graphics);
+        paintMove(graphics);
         paintSize(graphics);
         snake.paint(graphics, cellHeight, cellWidth, true);
         paintCenterText(graphics);
@@ -514,8 +517,17 @@ public class View extends javax.swing.JPanel {
         int fontSize = 14;
         graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
         graphics.setColor(Color.WHITE);
-        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: +/-", 120, 12);
+        graphics.drawString("Pause: space  |  Edit: e  |  Speed: +/-", 190, 12);
         graphics.drawString("Path: p | Graph: s | Control: arrows | Apple: click", 120, 26);
+        graphics.setColor(tmpColor);
+    }
+
+    private void paintMove(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
+        int fontSize = 14;
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("Move:" + moveCounter, 120, 12);
         graphics.setColor(tmpColor);
     }
 
