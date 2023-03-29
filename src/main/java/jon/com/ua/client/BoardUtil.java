@@ -15,7 +15,11 @@ import java.util.stream.Stream;
 
 public class BoardUtil {
     public static Point getTail(Board board) {
-        return board.get(Elements.TAIL_END_DOWN, Elements.TAIL_END_UP, Elements.TAIL_END_LEFT, Elements.TAIL_END_RIGHT).get(0);
+        List<Point> tail = board.get(Elements.TAIL_END_DOWN, Elements.TAIL_END_UP, Elements.TAIL_END_LEFT, Elements.TAIL_END_RIGHT);
+        if (tail.isEmpty()) {
+            return null;
+        }
+        return tail.get(0);
     }
 
 /*    public static Point getFirstEmpty(Board board, Point point) {

@@ -16,8 +16,8 @@ import java.util.Set;
 //11.58 - (211:61-150, 224:74-150)
 public class Dijkstra {
 
-    public static final int SNAKE_MAX_SIZE = 100; // TODO change 100
-    public static final int SNAKE_HUGE_SIZE = 110; // TODO change 110
+    public static final int SNAKE_MAX_SIZE = 130; // TODO change 100
+    public static final int SNAKE_HUGE_SIZE = 140; // TODO change 110
     public static final int SNAKE_KILL_SIZE = 160;
 
     public static class Vertex implements Comparable<Vertex>, Cloneable {
@@ -82,12 +82,18 @@ public class Dijkstra {
         Point head = board.getHead();
         Point apple = board.getApples().get(0);
         Point tail = BoardUtil.getTail(board);
+        // if snake without tail after reduction
+        tail = tail == null ? head : tail;
         // TODO камень можно добавлять через создания графа
         addPoint(verticesWithHead, stone);
         Vertex[][] verticesWithoutHeadTailWithStone = BoardUtil.createGraph(board, false, false, true);
         Vertex[][] verticesWithTailStone = BoardUtil.createGraph(board, false, true, true);
         Vertex[][] verticesWithTail = BoardUtil.createGraph(board, false, true, false);
-        boolean isTailNearApple = isPointsNear(board, apple, tail, verticesWithTail);
+        boolean isTailNearApple = loop
+                ? isPointsNear(board, apple, tail, verticesWithTailStone)
+                : isPointsNear(board, apple, tail, verticesWithTail);
+        // TODO review this hack with Rebuild new graph
+        verticesWithTailStone = BoardUtil.createGraph(board, false, true, true);
         boolean isTailNearStone = isPointsNear(board, stone, tail, verticesWithTailStone);
         Vertex headVertex = verticesWithHead[head.getX()][head.getY()];
         Vertex appleVertex = verticesWithHead[apple.getX()][apple.getY()];
@@ -123,6 +129,7 @@ public class Dijkstra {
         System.out.print(",  Around apple area: " + appleArea);
         System.out.print(",  Enough place around apple: " + isEnoughPlaceAroundApple);
         System.out.print(",  Shortest path to apple: " + shortestPathToApple.size());
+        System.out.print(",  Shortest path to tail: " + shortestPathToTail.size());
         System.out.print(",  Apple is available: " + appleIsAvailable);
         System.out.print(",  Tail is available: " + tailIsAvailable);
         System.out.print(",  Tail near apple: " + isTailNearApple);
@@ -145,16 +152,16 @@ public class Dijkstra {
             path.addAll(shortestPathToStone);
             System.out.println("Stone direction: " + stoneDirection);
             return stoneDirection;
-        } else if ((tailIsAvailable && !loop/*&& (!loop || moveCounter % 4 == 0)*/)
+        } else if (snakeSize > SNAKE_KILL_SIZE && moveCounter > snakeSize * 4) {
+            System.out.printf("Self killing, size: %d > moveCounter: %d\n", snakeSize, moveCounter);
+            return Direction.UP.toString();
+        } else if ((tailIsAvailable && (!loop || moveCounter % 4 == 0))
                   //  || (tailIsAvailable && loop && moveCounter % 4 == 0)
                     || (tailIsAvailable && board.countNear(board.getHead(), Elements.NONE) < 2)) {
             path.addAll(shortestPathToTail);
             String tailDirection = direction(head, getFirst(shortestPathToTail));
             System.out.println("Tail direction: " + tailDirection);
             return tailDirection;
-        } else if (snakeSize > SNAKE_KILL_SIZE) {
-            System.out.printf("Self killing, size: %d > moveCounter: %d\n", snakeSize, moveCounter);
-            return Direction.UP.toString();
         } else if (loop) {
             String longestDirection = NearestEmpty.getLongDirection(board, head, tail, path);
             System.out.println("Longest direction: " + longestDirection);
@@ -162,9 +169,9 @@ public class Dijkstra {
         } else {
             path.addAll(shortestPathToApple);
 /*            if (BiggerArea.isAreaBetter(board, verticesWithoutHeadTailWithStone)) {
-                System.out.println("Bigger direction: " + biggerDirection);
                 // TODO почему то при повторном вызове меняется значение
-                biggerDirection = BiggerArea.getDirection(board, verticesWithHead);
+                String biggerDirection = BiggerArea.getDirection(board, verticesWithHead);
+                System.out.println("Bigger direction: " + biggerDirection);
                 return biggerDirection;
             }*/
 
@@ -183,10 +190,11 @@ public class Dijkstra {
     }
 
     private static boolean isPointsNear(Board board, Point point1, Point point2, Vertex[][] vertices) {
-        Vertex tailVertex = vertices[point2.getX()][point2.getY()];
-        Vertex appleVertex = vertices[point1.getX()][point1.getY()];
-        BoardUtil.computePaths(appleVertex, board);
-        List<Point> shortestPathToApple = getShortestPathWithoutSource(tailVertex);
+        Vertex destination = vertices[point2.getX()][point2.getY()];
+        Vertex source = vertices[point1.getX()][point1.getY()];
+        BoardUtil.clearVisiting(vertices);
+        BoardUtil.computePaths(source, board);
+        List<Point> shortestPathToApple = getShortestPathWithoutSource(destination);
         return !shortestPathToApple.isEmpty();
     }
 

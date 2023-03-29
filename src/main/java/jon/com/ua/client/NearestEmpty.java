@@ -36,7 +36,8 @@ public class NearestEmpty {
     public static String getLongDirection(Board board, Point head, Point target, List<Point> path) {
         path.add(head);
         path.add(target);
-
+        Direction defaultDirection = BoardUtil.direction(head, target);
+        defaultDirection = defaultDirection == null ? Direction.UP : defaultDirection;
         Direction direction = Stream.of(
                         new PointImpl(head.getX() - 1, head.getY()),
                         new PointImpl(head.getX() + 1, head.getY()),
@@ -51,7 +52,7 @@ public class NearestEmpty {
                     return Integer.compare(pathToTail1.size(), pathToTail2.size());
                 })
                 .map(t -> BoardUtil.direction(head, t))
-                .orElse(Direction.UP);
+                .orElse(defaultDirection);
         return direction.toString();
     }
 

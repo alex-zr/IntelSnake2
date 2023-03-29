@@ -26,7 +26,7 @@ public class BiggerArea {
                     .map(t -> direction(head, t))
                     .orElse(Direction.UP);
         }*/
-/*    public static String getDirection(Board board, Dijkstra.Vertex[][] vertices) {
+    public static String getDirection(Board board, Dijkstra.Vertex[][] vertices) {
         Point headPoint = board.getHead();
         Point applePoint = board.getApples().get(0);
         Point tailPoint = BoardUtil.getTail(board);
@@ -92,9 +92,9 @@ public class BiggerArea {
         vertices[headPoint.getX()][headPoint.getY() - 1] = down;
 
         return direction.toString();
-    }*/
+    }
 
-/*    public static boolean isAreaBetter (Board board, Dijkstra.Vertex[][] vertices) {
+    public static boolean isAreaBetter (Board board, Dijkstra.Vertex[][] vertices) {
         Point headPoint = board.getHead();
         Dijkstra.Vertex headVertex = new Dijkstra.Vertex(headPoint);
         int snakeSize = board.getSnake().size();
@@ -113,17 +113,17 @@ public class BiggerArea {
         int maxArea = BoardUtil.calcVertices(maxVertex.point, vertices);
         int minArea = BoardUtil.calcVertices(minVertex.point, vertices);
         System.out.printf("Max: %d, Min: %d\n", maxArea, minArea);
-        return maxArea > minArea * 1.5;
-    }*/
+        return maxArea > minArea * 0.5;
+    }
 
 
 
-/*    private static Direction direction(Point from, Point to) {
+    private static Direction direction(Point from, Point to) {
         return Direction.getValues().stream()
                 .filter((direction) -> direction.change(from).itsMe(to))
                 .findFirst()
                 .orElse(null);
-    }*/
+    }
 
 
 }
