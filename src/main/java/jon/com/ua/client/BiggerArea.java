@@ -94,7 +94,7 @@ public class BiggerArea {
         return direction.toString();
     }
 
-    public static boolean isAreaBetter (Board board, Dijkstra.Vertex[][] vertices) {
+    public static Dijkstra.Vertex isAreaBetter (Board board, Dijkstra.Vertex[][] vertices) {
         Point headPoint = board.getHead();
         Dijkstra.Vertex headVertex = new Dijkstra.Vertex(headPoint);
         int snakeSize = board.getSnake().size();
@@ -113,7 +113,9 @@ public class BiggerArea {
         int maxArea = BoardUtil.calcVertices(maxVertex.point, vertices);
         int minArea = BoardUtil.calcVertices(minVertex.point, vertices);
         System.out.printf("Max: %d, Min: %d\n", maxArea, minArea);
-        return maxArea > minArea * 0.5;
+        boolean isBetter = maxArea > minArea * 0.5;
+
+        return isBetter ? maxVertex : null;
     }
 
 

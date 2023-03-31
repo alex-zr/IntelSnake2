@@ -368,6 +368,7 @@ public class View extends javax.swing.JPanel {
         createApple();
         createBadApple();
         manualDirection = null;
+        board.set(board.getHead().getX(), board.getHead().getY(), Elements.NONE.ch());
     }
 
     private void sleep(int delay) {

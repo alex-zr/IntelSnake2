@@ -59,7 +59,7 @@ public class YourSolver implements Solver<Board> {
             moveCounter = 0;
         }
 
-        String direction = Dijkstra.getDirection(board, path, justEat, moveCounter);
+        String direction = Dijkstra.getDirection(board, path, moveCounter);
 //        String direction = NearestEmpty.getDirection(board, path);
         return direction;
     }

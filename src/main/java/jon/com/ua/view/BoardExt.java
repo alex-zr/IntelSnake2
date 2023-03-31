@@ -1,5 +1,6 @@
 package jon.com.ua.view;
 
+import com.codenjoy.dojo.services.Point;
 import jon.com.ua.client.Board;
 import jon.com.ua.client.Elements;
 import jon.com.ua.view.snake.Snake;
