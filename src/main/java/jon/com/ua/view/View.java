@@ -33,7 +33,7 @@ public class View extends javax.swing.JPanel {
     private static final int GAME_OVER_DELAY = 2000;
     public static final int SNAKE_LENGTH = 2;
     public static final int DECREASE_LENGTH = 10;
-    public static int DELAY = 400;
+    public static int DELAY = 40;
 
     public static boolean muteSound = true;
     public boolean isEditMode = false;
@@ -55,6 +55,7 @@ public class View extends javax.swing.JPanel {
     private int framePosition;
     private int editX;
     private int editY;
+    public static volatile int moveCounter;
 
     public View(JFrame main, YourSolver solver) {
         this.solver = solver;
@@ -91,15 +92,21 @@ public class View extends javax.swing.JPanel {
                 if (DELAY > 50 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
                     DELAY -= 50;
                 }
-                if (DELAY <= 50 && DELAY != 5 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
+                if (DELAY <= 50 && DELAY > 5 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
                     DELAY -= 5;
+                }
+                if (DELAY < 6 && DELAY != 1 && (e.getKeyCode() == KeyEvent.VK_PLUS || e.getKeyCode() == KeyEvent.VK_EQUALS)) {
+                    DELAY -= 1;
                 }
 
                 if (DELAY >= 50 && e.getKeyCode() == KeyEvent.VK_MINUS) {
                     DELAY += 50;
                 }
-                if (DELAY < 50 && e.getKeyCode() == KeyEvent.VK_MINUS) {
+                if (DELAY < 50 && DELAY >= 5 && e.getKeyCode() == KeyEvent.VK_MINUS) {
                     DELAY += 5;
+                }
+                if (DELAY < 5 && e.getKeyCode() == KeyEvent.VK_MINUS) {
+                    DELAY += 1;
                 }
                 if (e.getKeyCode() == KeyEvent.VK_E) {
                     isEditMode = !isEditMode;
@@ -164,21 +171,40 @@ public class View extends javax.swing.JPanel {
                 if (isPause) {
                     continue;
                 }
-                this.board.render(snake, apple, badApple, walls);
-                System.out.println(this.board);
+
                 setSnakeDirection();
                 setSnakePathToTarget();
-                repaint();
-                View.this.sleep(DELAY);
-                snake.move();
-                checkSnakeEatApple();
+                boolean eated = snake.move();
+                handleEatedApple(eated);
+//                checkSnakeEatApple();
                 checkSnakeEatBadApple();
+                repaint();
+                this.board.render(this.snake, this.apple, this.badApple, this.walls);
+                System.out.println(this.board);
+                View.this.sleep(DELAY);
                 if (snake.isBittenItselfOrWall()) {
                     gameOver();
                 }
                 checkSnakeDead();
             }
         }).start();
+    }
+
+    private void handleEatedApple(boolean eated) {
+        if (eated) {
+            if (isEditMode) {
+                isPause = true;
+            } else {
+                createApple();
+            }
+            increaseScore(this.snake.size());
+            moveCounter = 0;
+            // For disable event sound
+            if (!muteSound) {
+                playSound = new PlaySound();
+                playSound.start();
+            }
+        }
     }
 
     private void startSound() {
@@ -247,7 +273,7 @@ public class View extends javax.swing.JPanel {
         snake.setPath(solver.getPath());
     }
 
-    private BoardElement checkSnakeEatApple() {
+/*    private BoardElement checkSnakeEatApple() {
         BoardElement eatedApple = tryToEatAndGet(this.apple);
         if (eatedApple != null) {
             if (isEditMode) {
@@ -263,8 +289,8 @@ public class View extends javax.swing.JPanel {
                 playSound.start();
             }
         }
-        return null;
-    }
+        return eatedApple;
+    }*/
 
     private BoardElement checkSnakeEatBadApple() {
         BoardElement eatBadApple = tryToEatAndGet(this.badApple);
@@ -298,15 +324,21 @@ public class View extends javax.swing.JPanel {
     }
 
     private void createApple(int x, int y) {
-        apple = new Apple(x, y);
+        this.apple = new Apple(x, y);
     }
 
     private void createApple() {
+        // TODO redevelop to place to only empty place
         do {
             int rndX = rnd.nextInt(board.size());
             int rndY = rnd.nextInt(board.size());
-            apple = new Apple(rndX, rndY);
-        } while ((snake != null && snake.isBody(apple)) || apple.itsMe(badApple) || isWall(apple));
+            if (this.apple == null) {
+                this.apple = new Apple(rndX, rndY);
+            }
+            this.apple.setX(rndX);
+            this.apple.setY(rndY);
+//            this.apple = new Apple(rndX, rndY);
+        } while ((snake != null && snake.isBody(this.apple)) || this.apple.itsMe(badApple) || isWall(this.apple));
     }
 
     private void createBadApple() {
@@ -337,6 +369,7 @@ public class View extends javax.swing.JPanel {
         createApple();
         createBadApple();
         manualDirection = null;
+        board.set(board.getHead().getX(), board.getHead().getY(), Elements.NONE.ch());
     }
 
     private void sleep(int delay) {
@@ -359,7 +392,7 @@ public class View extends javax.swing.JPanel {
 
         main.setContentPane(view);
         int fieldSize = CELL_SIZE * BoardExt.SIZE;
-        main.setBounds(10, 100, fieldSize - 13, fieldSize - 5);
+        main.setBounds(10, 10, fieldSize - 13, fieldSize - 5);
         main.setVisible(true);
     }
 
@@ -369,10 +402,12 @@ public class View extends javax.swing.JPanel {
 
     @Override
     public void paintComponent(Graphics graphics) {
-        if (isPaintSprites) {
-            paintSprites(graphics);
-        } else {
-            paintSimple(graphics);
+        synchronized (View.class) {
+            if (isPaintSprites) {
+                paintSprites(graphics);
+            } else {
+                paintSimple(graphics);
+            }
         }
     }
 
@@ -393,8 +428,11 @@ public class View extends javax.swing.JPanel {
         paintScore(graphics);
         paintDelay(graphics);
         paintHelp(graphics);
+        paintMove(graphics);
+        paintSize(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
+            snake.setGrow(false);
         }
     }
 
@@ -404,23 +442,28 @@ public class View extends javax.swing.JPanel {
         clearScreen(graphics, Elements.NONE);
 //        paintGrid(graphics, cellHeight, cellWidth);
         paintWalls(graphics, cellHeight, cellWidth, Elements.BREAK);
-        snake.paint(graphics, cellHeight, cellWidth, true);
+
         apple.paint(graphics, cellHeight, cellWidth, board.getAt(apple.getX(), apple.getY()));
         if (isPaintPath) {
             snake.paintPath(graphics, cellHeight, cellWidth, null);
         }
 //        paintNewApplePlace(graphics, cellHeight, cellWidth);
         badApple.paint(graphics, cellHeight, cellWidth, board.getAt(badApple.getX(), badApple.getY()));
-        paintCenterText(graphics);
         paintScore(graphics);
         paintDelay(graphics);
         paintHelp(graphics);
+        paintMove(graphics);
+        paintSize(graphics);
+        snake.paint(graphics, cellHeight, cellWidth, true);
+        paintCenterText(graphics);
         if (snake.isGrow()) {
             paintPlusScore(graphics);
+            snake.setGrow(false);
         }
+
     }
 
-    private void paintNewApplePlace(Graphics graphics, int cellHeight, int cellWidth) {
+/*    private void paintNewApplePlace(Graphics graphics, int cellHeight, int cellWidth) {
         int x = editX;
         int y = editY;
         graphics.setColor(Color.BLACK);
@@ -436,7 +479,7 @@ public class View extends javax.swing.JPanel {
         int xCell = (editX) / CELL_SIZE;
 //        graphics.drawString(xCell + ", " + yCell , 0, 250);
         graphics.setColor(tmpColor);
-    }
+    }*/
 
     private void paintWalls(Graphics graphics, int cellHeight, int cellWidth, Elements element) {
         for (Wall wall : this.walls) {
@@ -462,18 +505,36 @@ public class View extends javax.swing.JPanel {
         graphics.setColor(tmpColor);
     }
 
+    private void paintSize(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
+        int fontSize = 14;
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("S:" + snake.size(), 80, 26);
+        graphics.setColor(tmpColor);
+    }
+
     private void paintHelp(Graphics graphics) {
         Color tmpColor = graphics.getColor();
         int fontSize = 14;
         graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
         graphics.setColor(Color.WHITE);
-        graphics.drawString("Pause: space  |  Edit mode: e  |  Speed: +/-", 100, 12);
-        graphics.drawString("Path: p | Graphic: s | Control: arrows | Apple: click", 100, 26);
+        graphics.drawString("Pause: space  |  Edit: e  |  Speed: +/-", 190, 12);
+        graphics.drawString("Path: p | Graph: s | Control: arrows | Apple: click", 120, 26);
+        graphics.setColor(tmpColor);
+    }
+
+    private void paintMove(Graphics graphics) {
+        Color tmpColor = graphics.getColor();
+        int fontSize = 14;
+        graphics.setFont(new Font("Arial", Font.PLAIN, fontSize));
+        graphics.setColor(Color.WHITE);
+        graphics.drawString("Move:" + moveCounter, 120, 12);
         graphics.setColor(tmpColor);
     }
 
     private void paintCenterText(Graphics graphics) {
-        if (textOnCenter == null) {
+        if (this.textOnCenter == null) {
             return;
         }
         Rectangle clipBounds = graphics.getClipBounds();

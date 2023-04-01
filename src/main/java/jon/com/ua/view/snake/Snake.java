@@ -7,6 +7,7 @@ import jon.com.ua.view.Apple;
 import jon.com.ua.view.BadApple;
 import jon.com.ua.view.BoardElement;
 import jon.com.ua.view.BoardExt;
+import jon.com.ua.view.View;
 import jon.com.ua.view.Wall;
 
 import java.awt.*;
@@ -89,18 +90,10 @@ public class Snake {
     public void paint(Graphics g, int cellHeight, int cellWidth, boolean isPaintSprites) {
         for (int i = 0; i < heads.size(); i++) {
             BoardElement head = heads.get(i);
-            if ((isHead(head))) {
-                if (isPaintSprites) {
-                    head.paintSprite(g, cellHeight, cellWidth, getHeadElement());
-                } else {
-                    head.paintColor(g, cellHeight, cellWidth, Color.BLUE);
-                }
+            if (isPaintSprites) {
+                head.paintSprite(g, cellHeight, cellWidth, board.getAt(head.getX(), head.getY()));
             } else {
-                if (isPaintSprites) {
-                    head.paintSprite(g, cellHeight, cellWidth, board.getAt(head.getX(), head.getY()));
-                } else {
-                    head.paintColor(g, cellHeight, cellWidth, bodyColor);
-                }
+                head.paintColor(g, cellHeight, cellWidth, bodyColor);
             }
         }
     }
@@ -143,15 +136,33 @@ public class Snake {
         g2d.dispose();
     }
 
-    public void move() {
+    public boolean move() {
         BoardElement lead = heads.peekFirst();
         BoardElement newHead = getNewHead(lead);
         heads.addFirst(newHead);
-        if (!isGrow) {
+        View.moveCounter++;
+        boolean justEat = checkSnakeEatApple() != null;
+        if (!justEat) {
             heads.removeLast();
+        } else {
+            grow();
         }
 
-        isGrow = false;
+        return justEat;
+    }
+
+    private BoardElement checkSnakeEatApple() {
+        return tryToEatAndGet(this.apple);
+    }
+
+
+    private BoardElement tryToEatAndGet(BoardElement target) {
+        for (BoardElement head : heads) {
+            if (target.getX() == head.getX() && target.getY() == head.getY()) {
+                return target;
+            }
+        }
+        return null;
     }
 
     private BoardElement getNewHead(BoardElement lead) {
@@ -175,8 +186,12 @@ public class Snake {
         }
     }
 
+    public void setGrow(boolean grow) {
+        this.isGrow = grow;
+    }
+
     public void grow() {
-        isGrow = true;
+        this.isGrow = true;
     }
 
     public boolean isGrow() {
@@ -201,15 +216,6 @@ public class Snake {
         }
         for (BoardElement head : heads) {
             if (isCollision(head, boardElement)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean isBodyWithoutHead(BoardElement boardElement) {
-        for (BoardElement head : heads) {
-            if (!isHead(boardElement) && isCollision(head, boardElement)) {
                 return true;
             }
         }
