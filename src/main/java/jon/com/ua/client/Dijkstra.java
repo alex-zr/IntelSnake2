@@ -187,11 +187,9 @@ public class Dijkstra {
             path.addAll(shortestPathToApple);
             Vertex bettrVertex = BiggerArea.isAreaBetter(board, verticesWithoutHeadTailWithStone);
             if (bettrVertex != null) {
-                // TODO почему то при повторном вызове меняется значение
-//                String biggerDirection = BiggerArea.getDirection(board, verticesWithHeadWithoutTailStone);
-                Direction biggerDirection = headVertex.point.direction(bettrVertex.point);
+                String biggerDirection = direction(headVertex.point, bettrVertex.point);
                 System.out.println("Bigger direction: " + biggerDirection);
-                return biggerDirection.toString();
+                return biggerDirection;
             }
 
             String awayDirection = AwayFromTail.getDirection(board, verticesWithHeadWithoutTailStone);
