@@ -3,7 +3,6 @@ package jon.com.ua.client;
 import com.codenjoy.dojo.client.AbstractBoard;
 import com.codenjoy.dojo.services.Direction;
 import com.codenjoy.dojo.services.Point;
-import jon.com.ua.view.snake.Snake;
 
 import java.util.ArrayList;
 import java.util.Arrays;

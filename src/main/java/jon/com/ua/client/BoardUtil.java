@@ -251,7 +251,7 @@ public class BoardUtil {
                 double weight = edge.weight();
                 double distanceToNeighbor = current.minDistance + weight;
                 if (neighbor != null && distanceToNeighbor < neighbor.minDistance) {
-                    vertexQueue.remove(neighbor);
+                    //vertexQueue.remove(neighbor);
                     neighbor.minDistance = distanceToNeighbor;
                     neighbor.previous = current;
                     vertexQueue.add(neighbor);
