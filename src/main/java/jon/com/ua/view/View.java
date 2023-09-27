@@ -33,12 +33,12 @@ public class View extends javax.swing.JPanel {
     private static final int GAME_OVER_DELAY = 2000;
     public static final int SNAKE_LENGTH = 2;
     public static final int DECREASE_LENGTH = 10;
-    public static int DELAY = 40;
+    public static int DELAY = 1000;
 
     public static boolean muteSound = true;
     public boolean isEditMode = false;
     public boolean isPaintSprites = true;
-    public boolean isPaintPath = true;
+    public boolean isPaintPath = false;
     private String manualDirection;
     private BoardExt board;
     private List<Wall> walls = new ArrayList<>();

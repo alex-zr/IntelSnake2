@@ -29,6 +29,9 @@ public class YourSolver implements Solver<Board> {
 
     @Override
     public String get(Board board) {
+        if (!board.isGameOver()) {
+            return Direction.RIGHT.toString();
+        }
         if (board.isGameOver()) {
             return Direction.UP.toString();
         }
