@@ -32,6 +32,7 @@ public class YourSolver implements Solver<Board> {
 
     @Override
     public String get(Board board) {
+        long time = System.currentTimeMillis();
         if (board.isGameOver()) {
             return Direction.UP.toString();
         }
@@ -61,6 +62,7 @@ public class YourSolver implements Solver<Board> {
 
         String direction = Dijkstra.getDirection(board, path, moveCounter);
 //        String direction = NearestEmpty.getDirection(board, path);
+        System.out.println("Timer: " + (System.currentTimeMillis() - time));
         return direction;
     }
 

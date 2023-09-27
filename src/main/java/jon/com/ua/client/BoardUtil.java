@@ -48,7 +48,7 @@ public class BoardUtil {
                 .filter(p -> !board.getWalls().contains(p))
                 .collect(Collectors.toList());
         //availablePoints = new ArrayList<>(availablePoints);
-        Collections.shuffle(availablePoints);
+        //Collections.shuffle(availablePoints);
         if (!loop && availablePoints.size() > 1) {
             return availablePoints.stream()
                     .filter(p -> !stone.itsMe(p))

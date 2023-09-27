@@ -14,10 +14,14 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 //11.58 - (211:61-150, 224:74-150)
-public class Dijkstra {
+public class Dijkstra { // 2.57(130, 140), 2.63(100, 110), 3.13 - 2.99 (80, 90), 3.31 - 3.17 (70, 80), 3.10 - 3.04 (60, 70), 2.87 - 2.95 (50, 60)
+    //70, 80 - 31 - 10898
+    //100, 110 - 31 - 9533
+    //80, 90
 
-    public static final int SNAKE_MAX_SIZE = 130; // TODO change 100
-    public static final int SNAKE_HUGE_SIZE = 140; // TODO change 110
+
+    public static final int SNAKE_MAX_SIZE = 50; // TODO change 100
+    public static final int SNAKE_HUGE_SIZE = 60; // TODO change 110
     public static final int SNAKE_KILL_SIZE = 160;
 
     public static class Vertex implements Comparable<Vertex>, Cloneable {
